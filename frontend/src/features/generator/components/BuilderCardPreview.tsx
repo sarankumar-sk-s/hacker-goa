@@ -1,4 +1,4 @@
-import { useImperativeHandle, forwardRef, useState, useRef } from "react"
+import { useImperativeHandle, forwardRef, useState, useRef, useEffect } from "react"
 import { MapPin } from "lucide-react"
 import type { GeneratorFormValues } from "../../../types"
 import { use3dTilt } from "../../../hooks/use3dTilt"
@@ -38,6 +38,25 @@ export const BuilderCardPreview = forwardRef<BuilderCardPreviewRef, BuilderCardP
     // 3D tilt controls
     const { cardRef, tiltStyle, glareStyle, handleMouseMove, handleMouseLeave } = use3dTilt(7)
 
+    const parentRef = useRef<HTMLDivElement>(null)
+    const [scale, setScale] = useState(1)
+
+    useEffect(() => {
+      const parent = parentRef.current
+      if (!parent) return
+
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const parentWidth = entry.contentRect.width
+          const newScale = Math.min(1, parentWidth / 300)
+          setScale(newScale)
+        }
+      })
+
+      observer.observe(parent)
+      return () => observer.disconnect()
+    }, [])
+
     // Baseline size of card preview is 300px width for Goa Heritage
     const cardWidth = 300
     const avatarHalfSize = 78
@@ -57,7 +76,7 @@ export const BuilderCardPreview = forwardRef<BuilderCardPreviewRef, BuilderCardP
 
     // Scroll wheel zoom handler
     const handleWheel = (e: React.WheelEvent) => {
-      if (values.frameStyle !== "goa-classic") return
+      if (values.frameStyle !== "goa-classic" && values.frameStyle !== "goa-builder") return
       e.preventDefault()
       const zoomFactor = 0.08
       const direction = e.deltaY < 0 ? 1 : -1
@@ -68,7 +87,7 @@ export const BuilderCardPreview = forwardRef<BuilderCardPreviewRef, BuilderCardP
 
     // Mouse drag handlers
     const handleMouseDown = (e: React.MouseEvent) => {
-      if (values.frameStyle !== "goa-classic") return
+      if (values.frameStyle !== "goa-classic" && values.frameStyle !== "goa-builder") return
       e.preventDefault()
       setIsDragging(true)
       dragStartRef.current = { x: e.clientX - position.x, y: e.clientY - position.y }
@@ -87,7 +106,7 @@ export const BuilderCardPreview = forwardRef<BuilderCardPreviewRef, BuilderCardP
 
     // Mobile touch drag handlers
     const handleTouchStart = (e: React.TouchEvent) => {
-      if (values.frameStyle !== "goa-classic") return
+      if (values.frameStyle !== "goa-classic" && values.frameStyle !== "goa-builder") return
       if (e.touches.length === 1) {
         setIsDragging(true)
         const touch = e.touches[0]
@@ -167,8 +186,21 @@ export const BuilderCardPreview = forwardRef<BuilderCardPreviewRef, BuilderCardP
         : "HHG-26-0000"
 
       return (
-        <div className="w-full flex flex-col items-center justify-center py-4 select-none">
-          {/* Top Black Clip Element */}
+        <div 
+          ref={parentRef} 
+          className="w-full flex justify-center items-center overflow-visible py-4 select-none"
+          style={{ height: 475 * scale }}
+        >
+          <div 
+            style={{
+              width: 300,
+              height: 475,
+              transform: `scale(${scale})`,
+              transformOrigin: "top center",
+            }}
+            className="relative flex flex-col items-center shrink-0"
+          >
+            {/* Top Black Clip Element */}
           <div className="w-[80px] h-[35px] relative z-20 -mb-2.5 flex flex-col items-center pointer-events-none select-none">
             {/* The metal clamp loop */}
             <div className="w-[45px] h-[10px] bg-zinc-700 rounded-md border border-zinc-800 shadow-sm flex items-center justify-center">
@@ -450,6 +482,7 @@ export const BuilderCardPreview = forwardRef<BuilderCardPreviewRef, BuilderCardP
             )}
           </div>
         </div>
+      </div>
       )
     }
 
@@ -457,8 +490,21 @@ export const BuilderCardPreview = forwardRef<BuilderCardPreviewRef, BuilderCardP
     if (values.frameStyle === "goa-classic") {
       const activeRole = (values.role || "BUILDER").toUpperCase()
       return (
-        <div className="w-full flex justify-center py-4 select-none">
-          {/* Card interactive 3D container */}
+        <div 
+          ref={parentRef} 
+          className="w-full flex justify-center items-center overflow-visible py-4 select-none"
+          style={{ height: 450 * scale }}
+        >
+          <div 
+            style={{
+              width: 300,
+              height: 450,
+              transform: `scale(${scale})`,
+              transformOrigin: "top center",
+            }}
+            className="relative flex flex-col items-center shrink-0"
+          >
+            {/* Card interactive 3D container */}
           <div
             ref={cardRef}
             onMouseMove={handleMouseMove}
@@ -634,6 +680,7 @@ export const BuilderCardPreview = forwardRef<BuilderCardPreviewRef, BuilderCardP
             )}
           </div>
         </div>
+      </div>
       )
     }
 
@@ -646,7 +693,7 @@ export const BuilderCardPreview = forwardRef<BuilderCardPreviewRef, BuilderCardP
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           style={tiltStyle}
-          className="w-[310px] sm:w-[340px] md:w-[370px] aspect-[5/8] rounded-[24px] relative bg-zinc-950 border p-6 flex flex-col justify-between overflow-hidden cursor-default shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
+          className="w-full max-w-[310px] sm:max-w-[340px] md:max-w-[370px] aspect-[5/8] rounded-[24px] relative bg-zinc-950 border p-6 flex flex-col justify-between overflow-hidden cursor-default shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
         >
           {/* Glare hologram overlay */}
           <div

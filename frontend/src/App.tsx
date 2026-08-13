@@ -382,7 +382,7 @@ function App() {
 
           {/* Navigation Header */}
           <header className="w-full z-40 relative">
-            <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 h-24 flex items-center justify-between">
               <button 
                 onClick={navigateToLanding} 
                 className="flex items-center gap-3 hover:opacity-90 transition-opacity bg-transparent border-none p-0 cursor-pointer"
@@ -395,10 +395,10 @@ function App() {
                   <circle cx="30" cy="10" r="2" fill="#09090b" />
                 </svg>
                 <div className="flex flex-col text-left">
-                  <span className="font-heading font-black text-sm uppercase tracking-widest text-white leading-tight">
+                  <span className="font-heading font-black text-xs sm:text-sm uppercase tracking-widest text-white leading-tight">
                     HACKER HOUSE
                   </span>
-                  <span className="font-heading font-black text-xs uppercase tracking-widest text-[#FCD205] leading-tight">
+                  <span className="font-heading font-black text-[10px] sm:text-xs uppercase tracking-widest text-[#FCD205] leading-tight">
                     GOA
                   </span>
                 </div>
@@ -407,7 +407,7 @@ function App() {
               <div>
                 <Button
                   onClick={navigateToGenerator}
-                  className="bg-[#FCD205] hover:bg-[#ebd035] text-black border-none text-[10px] font-black uppercase tracking-wider px-5 py-2.5 shadow-md flex items-center gap-1.5 transition-all duration-200 cursor-pointer animate-pulse hover:animate-none"
+                  className="bg-[#FCD205] hover:bg-[#ebd035] text-black border-none text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-3 py-2 sm:px-5 sm:py-2.5 shadow-md flex items-center gap-1.5 transition-all duration-200 cursor-pointer animate-pulse hover:animate-none"
                 >
                   BUILD YOUR CARD <span className="text-xs">→</span>
                 </Button>
@@ -417,7 +417,7 @@ function App() {
 
           {/* Hero Section */}
           <main className="flex-grow flex items-center py-12 md:py-20 z-10 relative">
-            <div className="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
               
               {/* LEFT Column: Text & Buttons */}
               <div className="lg:col-span-7 space-y-6 flex flex-col justify-center">
@@ -499,7 +499,7 @@ function App() {
           </main>
 
           {/* Bottom Information Strip */}
-          <div className="w-full max-w-7xl mx-auto px-6 pb-10 pt-4 z-10 relative">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pb-10 pt-4 z-10 relative">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6 rounded-2xl border border-white/5 bg-black/45 backdrop-blur-md">
               {/* Item 1 */}
               <div className="flex items-start gap-4 text-left">
@@ -566,7 +566,7 @@ function App() {
           <div className="absolute inset-0 bg-black/75 pointer-events-none -z-10" />
           {/* Header */}
           <header className="sticky top-0 z-40 border-b border-white/5 bg-background/75 backdrop-blur-md">
-            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
               <button 
                 onClick={navigateToLanding} 
                 className="flex items-center gap-3 hover:opacity-90 transition-opacity bg-transparent border-none p-0 cursor-pointer"
@@ -643,7 +643,7 @@ function App() {
             </section>
 
             {/* Generator Grid */}
-            <section id="generator" className="max-w-6xl mx-auto px-6 py-6 scroll-mt-20">
+            <section id="generator" className="max-w-6xl mx-auto px-4 sm:px-6 py-6 scroll-mt-20">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
                 {/* LEFT SIDE */}

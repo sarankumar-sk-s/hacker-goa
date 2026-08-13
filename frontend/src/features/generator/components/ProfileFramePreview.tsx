@@ -568,7 +568,7 @@ export const ProfileFramePreview = forwardRef<ProfileFramePreviewRef, ProfileFra
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           style={tiltStyle}
-          className="w-[300px] md:w-[340px] aspect-square relative bg-transparent overflow-hidden rounded-[24px] cursor-grab active:cursor-grabbing group shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
+          className="w-full max-w-[300px] md:max-w-[340px] aspect-square relative bg-transparent overflow-hidden rounded-[24px] cursor-grab active:cursor-grabbing group shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
         >
           {/* Glare hologram overlay */}
           <div
