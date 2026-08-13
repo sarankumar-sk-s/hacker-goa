@@ -20,8 +20,423 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
 export async function downloadBuilderCard(
   imageSrc: string | null,
   values: GeneratorFormValues,
-  primaryColor: string
+  primaryColor: string,
+  zoom?: number,
+  position?: { x: number; y: number },
+  previewSize?: number,
+  builderId?: string
 ): Promise<void> {
+  // Frame 3 — Hacker House Goa Builder ID Card Local Draw
+  if (values.frameStyle === "goa-builder") {
+    const canvas = document.createElement("canvas")
+    canvas.width = 1024
+    canvas.height = 1536
+    const ctx = canvas.getContext("2d")
+    if (!ctx) throw new Error("Could not initialize canvas context.")
+
+    // 1. Draw user photo inside the circular cutout first so background template is layered on top!
+    // Circular cutout center is (512, 602), radius is 267
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(512, 602, 267, 0, Math.PI * 2)
+    ctx.clip()
+
+    if (imageSrc) {
+      try {
+        const img = await loadImage(imageSrc)
+        const baseScale = Math.max(534 / img.width, 534 / img.height)
+        const finalScale = baseScale * (zoom || 1.0)
+        const w = img.width * finalScale
+        const h = img.height * finalScale
+
+        const scaleFactor = 1024 / (previewSize || 300)
+        const x = 512 - w / 2 + (position?.x || 0) * scaleFactor
+        const y = 602 - h / 2 + (position?.y || 0) * scaleFactor
+
+        ctx.drawImage(img, x, y, w, h)
+      } catch (e) {
+        ctx.fillStyle = "#F4EFE4"
+        ctx.fillRect(512 - 267, 602 - 267, 534, 534)
+      }
+    } else {
+      ctx.fillStyle = "#F4EFE4"
+      ctx.fillRect(512 - 267, 602 - 267, 534, 534)
+    }
+    ctx.restore()
+
+    // 2. Draw Goa Builder template background artwork
+    const safeRole = escapeHtml((values.role || "BUILDER").toUpperCase())
+    const formattedId = builderId 
+      ? `HHG-26-${builderId.split("-").pop() || "0000"}` 
+      : "HHG-26-0000"
+
+    const backdropSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1536" viewBox="0 0 1024 1536" fill="none">
+        <mask id="cutout">
+          <rect x="0" y="0" width="1024" height="1536" fill="#ffffff" />
+          <circle cx="512" cy="602" r="267" fill="#000000" />
+        </mask>
+
+        <filter id="paper-texture">
+          <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+          <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.04 0" />
+          <feComposite operator="in" in2="SourceGraphic" />
+        </filter>
+
+        <g mask="url(#cutout)">
+          <rect x="10" y="10" width="1004" height="1516" rx="80" fill="#F4EFE4" stroke="#1E4D39" stroke-width="8" />
+          <rect x="14" y="14" width="996" height="1508" rx="76" filter="url(#paper-texture)" opacity="0.6" />
+
+          <!-- Scenery -->
+          <circle cx="170" cy="836" r="75" fill="#F7C32E" opacity="0.9" />
+          <path d="M 14,920 Q 100,900 180,920 T 420,915 L 420,1000 L 14,1000 Z" fill="#1E4D39" opacity="0.2" />
+          <path d="M 14,932 L 420,932 L 420,1000 L 14,1000 Z" fill="#1E4D39" opacity="0.35" />
+          <path d="M 80,920 L 80,870 L 105,870 L 105,855 L 90,855 L 90,835 L 115,835 L 115,920 Z" fill="#0F2A21" opacity="0.85" />
+          <path d="M 20,935 Q 50,915 120,920 T 180,935 Z" fill="#0F2A21" />
+
+          <!-- Palms -->
+          <path d="M 30,1000 C 70,915 50,750 15,630" stroke="#1E4D39" stroke-width="8.5" fill="none" stroke-linecap="round" />
+          <path d="M 15,630 Q 60,605 95,620 Q 50,640 15,630" fill="#1E4D39" />
+          <path d="M 15,630 Q -15,595 -50,610 Q -20,635 15,630" fill="#1E4D39" />
+          <path d="M 15,630 Q 7,675 -3,710 Q 10,670 15,630" fill="#1E4D39" />
+          <path d="M 15,630 Q 50,665 70,700 Q 40,660 15,630" fill="#1E4D39" />
+
+          <path d="M 1010,1000 C 970,930 985,820 1010,720" stroke="#1E4D39" stroke-width="6" stroke-dasharray="5 5" fill="none" opacity="0.4" />
+          <path d="M 1010,720 Q 975,700 940,715 M 1010,720 Q 1000,755 990,780" stroke="#1E4D39" stroke-width="5" opacity="0.4" />
+        </g>
+
+        <!-- Cutout Rings -->
+        <circle cx="512" cy="602" r="280.5" fill="none" stroke="#1E4D39" stroke-width="8.5" />
+        <circle cx="512" cy="602" r="273.5" fill="none" stroke="#F7C32E" stroke-width="6.8" />
+        <circle cx="512" cy="602" r="267.0" fill="none" stroke="#E53E3E" stroke-width="5.0" />
+
+        <!-- Side Icons -->
+        <g transform="translate(896, 500)" fill="#1E4D39">
+          <text x="0" y="0" font-family="'Plus Jakarta Sans', sans-serif" font-size="44" font-weight="900" text-anchor="middle">&lt;/&gt;</text>
+          <g transform="translate(-20, 60) scale(1.6)" fill="#1E4D39">
+            <path d="M9 21h6v1H9v-1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.65 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.65-.8 3.16-2.15 4.1z" />
+          </g>
+          <g transform="translate(-20, 150) scale(1.6)" fill="#1E4D39">
+            <path d="M12 22V10m0 0a8 8 0 018-2c0 2-4 2-8 2m0 0a8 8 0 00-8-2c0 2 4 2 8 2m0 0a5 5 0 014-4m-4 4a5 5 0 00-4-4" />
+          </g>
+        </g>
+
+        <!-- Brush Badge Shape -->
+        <g transform="translate(512, 888)">
+          <path d="M -240,-15 C -90,-10 90,-18 240,-15 C 275,-14 315,-18 322,-12 C 300,-3 220,13 140,11 C 40,13 -100,5 -200,1 C -230,-0.5 -270,-3 -265,-8 Z" fill="#0F2A21" />
+        </g>
+
+        <!-- Bottom Panel & Icons -->
+        <g transform="translate(10, 1176)">
+          <rect x="0" y="0" width="1004" height="340" fill="#0F2A21" />
+          <rect x="0" y="0" width="401.6" height="8.5" fill="#1E4D39" />
+          <rect x="401.6" y="0" width="301.2" height="8.5" fill="#F7C32E" />
+          <rect x="702.8" y="0" width="301.2" height="8.5" fill="#E53E3E" />
+          
+          <g transform="translate(780, 80) scale(3)" stroke="#F4EFE4" stroke-width="1.2" fill="none" opacity="0.25">
+            <path d="M 30 10 L 30 18 M 27 13 L 33 13 M 30 18 L 22 25 L 22 45 L 38 45 L 38 25 Z" />
+            <path d="M 26 30 L 34 30 M 30 27 L 30 35" />
+            <path d="M 45 45 C 47 38 45 32 40 28 M 40 28 Q 48 26 53 28 M 40 28 Q 42 34 44 40" />
+          </g>
+
+          <!-- Pin -->
+          <path d="M 245,126 A 10,10 0 0,1 255,116 A 10,10 0 0,1 265,126 C 265,134 255,144 255,144 C 255,144 245,134 245,126 Z M 251,126 A 4,4 0 0,0 255,130 A 4,4 0 0,0 259,126 A 4,4 0 0,0 255,122 A 4,4 0 0,0 251,126 Z" fill="#F7C32E" />
+          <!-- Globe -->
+          <circle cx="255" cy="178" r="9" stroke="#F7C32E" stroke-width="2" fill="none" />
+          <line x1="246" y1="178" x2="264" y2="178" stroke="#F7C32E" stroke-width="1.5" />
+          <path d="M 255,169 C 258,172 258,184 255,187 C 252,184 252,172 255,169 Z" stroke="#F7C32E" stroke-width="1.5" fill="none" />
+          <!-- Instagram -->
+          <rect x="246" y="219" width="18" height="18" rx="4" stroke="#F7C32E" stroke-width="2" fill="none" />
+          <circle cx="255" cy="228" r="4.5" stroke="#F7C32E" stroke-width="2" fill="none" />
+          <circle cx="260" cy="223" r="1" fill="#F7C32E" />
+        </g>
+      </svg>
+    `
+
+    try {
+      const bgImg = await loadImage("data:image/svg+xml;charset=utf-8," + encodeURIComponent(backdropSvg))
+      ctx.drawImage(bgImg, 0, 0, 1024, 1536)
+    } catch (e) {
+      console.error("Failed to load Frame 3 backdrop:", e)
+    }
+
+    // 3. Draw dynamic header texts
+    ctx.fillStyle = "#1E4D39"
+    ctx.font = "900 24px 'Plus Jakarta Sans', sans-serif"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    ctx.fillText("28 – 31 OCT • GOA", 68, 48)
+
+    ctx.textAlign = "right"
+    ctx.fillText("HH GOA • 2026", 956, 48)
+
+    // Hacker House title
+    ctx.fillStyle = "#0F2A21"
+    ctx.font = "900 84px 'Plus Jakarta Sans', sans-serif"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    ctx.fillText("HACKER HOUSE", 68, 100)
+
+    // Subtitle BUILD • BREAK • INNOVATE
+    ctx.fillStyle = "#1E4D39"
+    ctx.font = "900 22px 'Plus Jakarta Sans', sans-serif"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    ctx.fillText("BUILD", 68, 205)
+    ctx.fillStyle = "#F7C32E"
+    ctx.fillText("•", 152, 205)
+    ctx.fillStyle = "#1E4D39"
+    ctx.fillText("BREAK", 175, 205)
+    ctx.fillStyle = "#E53E3E"
+    ctx.fillText("•", 267, 205)
+    ctx.fillStyle = "#1E4D39"
+    ctx.fillText("INNOVATE", 290, 205)
+
+    // Tilted Goa badge
+    ctx.save()
+    ctx.translate(765, 142)
+    ctx.rotate(-8 * Math.PI / 180)
+    ctx.fillStyle = "#F7C32E"
+    ctx.strokeStyle = "#E53E3E"
+    ctx.lineWidth = 2.5
+    ctx.beginPath()
+    ctx.roundRect(-42, -22, 84, 44, 12)
+    ctx.fill()
+    ctx.stroke()
+
+    ctx.fillStyle = "#E53E3E"
+    ctx.font = "900 24px 'Plus Jakarta Sans', sans-serif"
+    ctx.textAlign = "center"
+    ctx.textBaseline = "middle"
+    ctx.fillText("गोवा", 0, 2)
+    ctx.restore()
+
+    // 4. Draw dynamic Role text in white centered inside brush stroke
+    ctx.fillStyle = "#FFFFFF"
+    ctx.font = "900 36px 'Plus Jakarta Sans', sans-serif"
+    ctx.textAlign = "center"
+    ctx.textBaseline = "middle"
+    ctx.fillText(safeRole, 512, 888)
+
+    // 5. Draw Name, GitHub username, and BUILDER ID Label and generated value
+    // Draw Name
+    ctx.fillStyle = "#0F2A21"
+    ctx.font = "900 42px 'Plus Jakarta Sans', sans-serif"
+    ctx.textAlign = "center"
+    ctx.textBaseline = "top"
+    ctx.fillText((values.name || "YOUR NAME").toUpperCase(), 512, 1003)
+
+    // Draw GitHub ID
+    ctx.fillStyle = "#E53E3E"
+    ctx.font = "bold 26px monospace"
+    ctx.textAlign = "center"
+    ctx.textBaseline = "top"
+    ctx.fillText(`@${values.github || "username"}`, 512, 1048)
+
+    // Draw BUILDER ID Label
+    ctx.fillStyle = "#1E4D39"
+    ctx.font = "900 20px 'Plus Jakarta Sans', sans-serif"
+    ctx.textAlign = "center"
+    ctx.textBaseline = "top"
+    ctx.fillText("BUILDER ID", 512, 1105)
+
+    // Draw BUILDER ID Value
+    ctx.fillStyle = "#0F2A21"
+    ctx.font = "900 34px 'Plus Jakarta Sans', sans-serif"
+    ctx.textAlign = "center"
+    ctx.textBaseline = "top"
+    ctx.fillText(formattedId, 512, 1132)
+
+    // 6. Draw QR code
+    try {
+      const qrImg = await loadImage("/qr_hhgoa.png")
+      ctx.drawImage(qrImg, 68, 1285, 172, 172)
+    } catch (e) {
+      console.error("Failed to load QR code for canvas:", e)
+    }
+
+    // 7. Draw Metadata coordinates texts inside bottom panel
+    ctx.fillStyle = "#FFFFFF"
+    ctx.font = "900 24px 'Plus Jakarta Sans', sans-serif"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    ctx.fillText("GOA, INDIA", 295, 1295)
+
+    ctx.font = "500 22px 'Plus Jakarta Sans', sans-serif"
+    ctx.fillText("www.hackerhousegoa.com", 295, 1347)
+    ctx.fillText("@hackerhousegoa", 295, 1399)
+
+    // 8. Trigger download
+    const dataUrl = canvas.toDataURL("image/png")
+    const link = document.createElement("a")
+    link.download = `HH_Goa_Builder_Card_${values.name.replace(/\s+/g, "_") || "2026"}.png`
+    link.href = dataUrl
+    link.click()
+    return
+  }
+
+  // Goa Heritage Template Local Draw
+  if (values.frameStyle === "goa-classic") {
+    const canvas = document.createElement("canvas")
+    canvas.width = 1024
+    canvas.height = 1536
+    const ctx = canvas.getContext("2d")
+    if (!ctx) throw new Error("Could not initialize canvas context.")
+
+    // 1. Draw user photo inside the circular cutout first so background template is layered on top!
+    // Circular cutout center is (512, 602), radius is 267
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(512, 602, 267, 0, Math.PI * 2)
+    ctx.clip()
+
+    if (imageSrc) {
+      try {
+        const img = await loadImage(imageSrc)
+        const baseScale = Math.max(534 / img.width, 534 / img.height)
+        const finalScale = baseScale * (zoom || 1.0)
+        const w = img.width * finalScale
+        const h = img.height * finalScale
+
+        const scaleFactor = 1024 / (previewSize || 300)
+        const x = 512 - w / 2 + (position?.x || 0) * scaleFactor
+        const y = 602 - h / 2 + (position?.y || 0) * scaleFactor
+
+        ctx.drawImage(img, x, y, w, h)
+      } catch (e) {
+        ctx.fillStyle = "#EAE3D2"
+        ctx.fillRect(512 - 267, 602 - 267, 534, 534)
+      }
+    } else {
+      ctx.fillStyle = "#EAE3D2"
+      ctx.fillRect(512 - 267, 602 - 267, 534, 534)
+    }
+    ctx.restore()
+
+    // 2. Draw Goa Heritage template background (contains borders, scenery, buttons, etc.) on top
+    try {
+      const bgImg = await loadImage("/goa_heritage_bg.png")
+      ctx.drawImage(bgImg, 0, 0, 1024, 1536)
+    } catch (e) {
+      console.error("Failed to load /goa_heritage_bg.png for canvas:", e)
+    }
+
+    // 3. Draw dynamic Pink Role Badge (rotates -6deg, centered around x=297, y=775)
+    ctx.save()
+    ctx.translate(297, 775)
+    ctx.rotate(-6 * Math.PI / 180)
+    
+    // Draw badge background
+    ctx.fillStyle = "#D92B5A"
+    ctx.strokeStyle = "#0B3F20"
+    ctx.lineWidth = 3
+    ctx.beginPath()
+    ctx.roundRect(-88, -32, 176, 64, 12)
+    ctx.fill()
+    ctx.stroke()
+    
+    // Draw badge text
+    ctx.fillStyle = "#FFFFFF"
+    ctx.font = "900 24px 'Plus Jakarta Sans', sans-serif"
+    ctx.textAlign = "center"
+    ctx.textBaseline = "middle"
+    ctx.fillText((values.role || "BUILDER").toUpperCase(), 0, 2)
+    ctx.restore()
+
+    // 4. Draw dynamic Name inside yellow name box (centered horizontally, y=990)
+    ctx.fillStyle = "#0B3F20"
+    ctx.font = "900 38px 'Plus Jakarta Sans', sans-serif"
+    ctx.textAlign = "center"
+    ctx.textBaseline = "middle"
+    ctx.fillText((values.name || "YOUR NAME").toUpperCase(), 430, 990) // Yellow box center x: (157+705)/2 = 431
+
+    // 5. Draw dynamic Username inside green pill (centered horizontally inside green pill: center x=795, y=990)
+    if (values.github) {
+      ctx.fillStyle = "#FCD205"
+      ctx.font = "bold 24px 'Plus Jakarta Sans', sans-serif"
+      ctx.textAlign = "center"
+      ctx.textBaseline = "middle"
+      ctx.fillText(`@${values.github}`, 795, 990)
+    }
+
+    // 6. Draw dynamic Stack column text (left-aligned at x=140, y=1080)
+    ctx.fillStyle = "#0B3F20"
+    ctx.font = "bold 28px 'Plus Jakarta Sans', sans-serif"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    ctx.fillText(values.techStack || "Backend Dev", 140, 1080)
+
+    // 7. Draw dynamic Designation/Title column text (left-aligned at x=540, y=1080)
+    ctx.fillStyle = "#0B3F20"
+    ctx.font = "bold 28px 'Plus Jakarta Sans', sans-serif"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    ctx.fillText(values.title || "Hacker", 540, 1080)
+
+    // 8. Draw dynamic Barcode Stripes (starts at x=264, width=502, y=1180, height=99)
+    ctx.fillStyle = "#0B3F20"
+    const barcodeX = 264
+    const barcodeY = 1180
+    const barcodeWidth = 502
+    const barcodeHeight = 99
+    
+    // Draw stripes seeded by builderId
+    const idStr = builderId || "HHGOA26-BUILDER-1947"
+    let seed = 0
+    for (let c of idStr) seed += c.charCodeAt(0)
+    
+    let currX = barcodeX
+    while (currX < barcodeX + barcodeWidth - 10) {
+      const stripeW = ((seed % 3) + 1) * 4
+      ctx.fillRect(currX, barcodeY, stripeW, barcodeHeight)
+      seed = (seed * 9301 + 49297) % 233280
+      const gapW = ((seed % 3) + 1) * 4
+      currX += stripeW + gapW
+    }
+
+    // 9. Draw dynamic Builder ID text below barcode (centered horizontally, y=1290)
+    ctx.fillStyle = "#0B3F20"
+    ctx.font = "bold 24px monospace"
+    ctx.textAlign = "center"
+    ctx.textBaseline = "top"
+    ctx.fillText(idStr, 512, 1290)
+
+    // 10. Center new pink QR code image in Left Button & Coordinates in Right Button
+    // Cover the left button rectangle box on the canvas
+    ctx.fillStyle = "#FAF7F2"
+    ctx.fillRect(166, 1350, 332, 86)
+
+    try {
+      const qrImg = await loadImage("/qr_hhgoa.png")
+      ctx.drawImage(qrImg, 284, 1345, 96, 96)
+    } catch (e) {
+      console.error("Failed to load /qr_hhgoa.png for canvas:", e)
+    }
+
+    ctx.save()
+    ctx.textAlign = "center"
+    ctx.textBaseline = "top"
+    ctx.fillStyle = "#0B3F20"
+
+    // Draw centered Line 1: VIEW : 15.2993° N, 74.1240° E
+    ctx.font = "900 16px 'Plus Jakarta Sans', sans-serif"
+    ctx.fillText("VIEW : 15.2993° N, 74.1240° E", 683, 1367)
+
+    // Draw centered Line 2: GOA, INDIA
+    ctx.font = "900 17px 'Plus Jakarta Sans', sans-serif"
+    ctx.fillText("GOA, INDIA", 683, 1393)
+    ctx.restore()
+
+    // Trigger download of canvas
+    const dataUrl = canvas.toDataURL("image/png")
+    const link = document.createElement("a")
+    link.download = `HH_Goa_Builder_Card_${values.name.replace(/\s+/g, "_") || "2026"}.png`
+    link.href = dataUrl
+    link.click()
+    return
+  }
+
+  // Cyberpunk Template Local Draw (Fallback / client-side render)
   const canvas = document.createElement("canvas")
   canvas.width = 1200
   canvas.height = 1800

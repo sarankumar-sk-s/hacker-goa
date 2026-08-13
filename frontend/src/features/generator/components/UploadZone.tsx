@@ -7,9 +7,17 @@ import { useToast } from "@/context/ToastContext"
 interface UploadZoneProps {
   onImageSelected: (file: File | null, dataUrl: string | null) => void
   selectedImage: string | null
+  frameStyle?: string
 }
 
-export const UploadZone: React.FC<UploadZoneProps> = ({ onImageSelected, selectedImage }) => {
+export const UploadZone: React.FC<UploadZoneProps> = ({ onImageSelected, selectedImage, frameStyle }) => {
+  const isClassic = frameStyle === "goa-classic" || frameStyle === "goa-builder"
+  const activeColorText = isClassic ? "text-[#FCD205]" : "text-neon-emerald"
+  const activeBorder = isClassic ? "border-[#FCD205]" : "border-neon-emerald"
+  const activeBg = isClassic ? "bg-[#FCD205]/5" : "bg-neon-emerald/5"
+  const activeShadow = isClassic ? "shadow-[0_0_15px_rgba(252,210,5,0.15)]" : "shadow-[0_0_15px_rgba(0,255,135,0.15)]"
+  const activeRing = isClassic ? "focus:ring-[#FCD205]/30" : "focus:ring-neon-emerald/30"
+
   const [isDragActive, setIsDragActive] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
@@ -176,15 +184,15 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onImageSelected, selecte
             }}
             role="button"
             aria-label="Upload photo dropzone. Click or drag image here."
-            className={`w-full py-12 px-6 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-neon-emerald/30 ${
+            className={`w-full py-12 px-6 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative overflow-hidden focus:outline-none focus:ring-2 ${activeRing} ${
               isDragActive
-                ? "border-neon-emerald bg-neon-emerald/5 shadow-[0_0_15px_rgba(0,255,135,0.15)]"
+                ? `${activeBorder} ${activeBg} ${activeShadow}`
                 : "border-white/10 bg-zinc-950/20 hover:border-white/20 hover:bg-zinc-950/40"
             } ${isProcessing ? "pointer-events-none" : ""}`}
           >
             {isProcessing ? (
               <div className="flex flex-col items-center justify-center py-4">
-                <Loader2 className="h-10 w-10 text-neon-emerald animate-spin mb-4" />
+                <Loader2 className={`h-10 w-10 animate-spin mb-4 ${activeColorText}`} />
                 <p className="text-sm text-zinc-300 font-heading font-medium tracking-wide">
                   {status}
                 </p>
@@ -230,8 +238,8 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onImageSelected, selecte
                 triggerFileInput()
               }
             }}
-            className={`w-full relative aspect-square rounded-2xl overflow-hidden border border-white/10 bg-zinc-950/60 flex items-center justify-center group cursor-pointer transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-neon-emerald/30 ${
-              isDragActive ? "border-neon-emerald ring-2 ring-neon-emerald/30 scale-[1.01]" : "hover:border-white/20"
+            className={`w-full relative aspect-square rounded-2xl overflow-hidden border border-white/10 bg-zinc-950/60 flex items-center justify-center group cursor-pointer transition-all duration-300 focus:outline-none focus:ring-2 ${activeRing} ${
+              isDragActive ? `${activeBorder} ring-2 ${isClassic ? "ring-[#FCD205]/30" : "ring-neon-emerald/30"} scale-[1.01]` : "hover:border-white/20"
             }`}
           >
             <img
@@ -244,7 +252,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onImageSelected, selecte
 
             {isProcessing && (
               <div className="absolute inset-0 bg-zinc-950/85 backdrop-blur-sm flex flex-col items-center justify-center z-25">
-                <Loader2 className="h-8 w-8 text-neon-emerald animate-spin mb-3" />
+                <Loader2 className={`h-8 w-8 animate-spin mb-3 ${activeColorText}`} />
                 <p className="text-xs text-zinc-300 font-heading font-medium tracking-wide">
                   {status}
                 </p>
@@ -252,9 +260,9 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onImageSelected, selecte
             )}
 
             {isDragActive && (
-              <div className="absolute inset-0 bg-neon-emerald/15 backdrop-blur-[2px] flex flex-col items-center justify-center border-2 border-neon-emerald rounded-2xl z-20 pointer-events-none">
-                <Upload className="h-8 w-8 text-neon-emerald animate-bounce mb-2" />
-                <p className="text-sm text-neon-emerald font-heading font-bold uppercase tracking-wider">
+              <div className={`absolute inset-0 ${isClassic ? "bg-[#FCD205]/15" : "bg-neon-emerald/15"} backdrop-blur-[2px] flex flex-col items-center justify-center border-2 ${activeBorder} rounded-2xl z-20 pointer-events-none`}>
+                <Upload className={`h-8 w-8 animate-bounce mb-2 ${activeColorText}`} />
+                <p className={`text-sm font-heading font-bold uppercase tracking-wider ${activeColorText}`}>
                   Drop to replace
                 </p>
               </div>
@@ -272,13 +280,13 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onImageSelected, selecte
                   title="Remove photo"
                   aria-label="Remove photo"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5" />
                 </button>
               </div>
 
               <div className="flex flex-col items-center gap-2 mb-2 pointer-events-none">
                 <span className="p-2 rounded-full bg-black/50 border border-white/10 text-white">
-                  <RefreshCw className="h-4 w-4 text-neon-emerald animate-pulse" />
+                  <RefreshCw className={`h-4 w-4 animate-pulse ${activeColorText}`} />
                 </span>
                 <span className="text-xs text-zinc-200 font-bold uppercase tracking-wider font-heading">
                   Click or drag to replace
@@ -292,7 +300,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onImageSelected, selecte
             <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-zinc-400 font-medium group-hover:opacity-0 transition-opacity duration-300 pointer-events-none z-10">
               <div className="flex items-center gap-2">
                 <span className="p-1 rounded bg-black/50 border border-white/10">
-                  <ImageIcon className="h-3.5 w-3.5 text-neon-emerald" />
+                  <ImageIcon className={`h-3.5 w-3.5 ${activeColorText}`} />
                 </span>
                 <span className="text-zinc-200 font-sans text-[11px] font-semibold">
                   Photo aligned and optimized

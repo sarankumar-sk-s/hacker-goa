@@ -21,10 +21,13 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "Hacker House Goa 2026 Builder Generator"
     
-    # CORS Origins configuration
     BACKEND_CORS_ORIGINS: Annotated[
         List[str], BeforeValidator(parse_cors)
-    ] = ["http://localhost:5173", "http://localhost:3000"]
+    ] = [
+        "http://localhost:5173", 
+        "http://localhost:3000",
+        "https://hacker-goa-virid.vercel.app"
+    ]
 
     @field_validator("BACKEND_CORS_ORIGINS")
     @classmethod

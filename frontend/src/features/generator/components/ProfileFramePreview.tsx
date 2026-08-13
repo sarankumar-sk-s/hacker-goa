@@ -9,6 +9,9 @@ interface ProfileFramePreviewProps {
   activeColor: string
   zoom: number
   onZoomChange: (zoom: number) => void
+  position: { x: number; y: number }
+  onPositionChange: (pos: { x: number; y: number }) => void
+  builderId?: string
   isProcessing?: boolean
   logs?: string[]
 }
@@ -19,7 +22,7 @@ export interface ProfileFramePreviewRef {
 }
 
 export const ProfileFramePreview = forwardRef<ProfileFramePreviewRef, ProfileFramePreviewProps>(
-  ({ values, imageSrc, activeColor, zoom, onZoomChange, isProcessing = false, logs = [] }, ref) => {
+  ({ values, imageSrc, activeColor, zoom, onZoomChange, position, onPositionChange, builderId, isProcessing = false, logs = [] }, ref) => {
     // 3D tilt controls
     const { cardRef, tiltStyle, glareStyle, handleMouseMove, handleMouseLeave } = use3dTilt(5)
 
@@ -36,7 +39,6 @@ export const ProfileFramePreview = forwardRef<ProfileFramePreviewRef, ProfileFra
       }
     }
 
-    const [position, setPosition] = useState({ x: 0, y: 0 })
     const [isDragging, setIsDragging] = useState(false)
     const dragStartRef = useRef({ x: 0, y: 0 })
     const containerRef = useRef<HTMLDivElement>(null)
@@ -48,7 +50,7 @@ export const ProfileFramePreview = forwardRef<ProfileFramePreviewRef, ProfileFra
       const direction = e.deltaY < 0 ? 1 : -1
       const nextZoom = Math.max(1.0, Math.min(5.0, zoom + direction * zoomFactor))
       onZoomChange(nextZoom)
-      setPosition(pos => clampPosition(pos.x, pos.y, nextZoom))
+      onPositionChange(clampPosition(position.x, position.y, nextZoom))
     }
 
     // Mouse drag handlers
@@ -62,7 +64,7 @@ export const ProfileFramePreview = forwardRef<ProfileFramePreviewRef, ProfileFra
       if (!isDragging) return
       const rawX = e.clientX - dragStartRef.current.x
       const rawY = e.clientY - dragStartRef.current.y
-      setPosition(clampPosition(rawX, rawY, zoom))
+      onPositionChange(clampPosition(rawX, rawY, zoom))
     }
 
     const handleMouseUp = () => {
@@ -84,7 +86,7 @@ export const ProfileFramePreview = forwardRef<ProfileFramePreviewRef, ProfileFra
         const touch = e.touches[0]
         const rawX = touch.clientX - dragStartRef.current.x
         const rawY = touch.clientY - dragStartRef.current.y
-        setPosition(clampPosition(rawX, rawY, zoom))
+        onPositionChange(clampPosition(rawX, rawY, zoom))
       }
     }
 
@@ -97,6 +99,337 @@ export const ProfileFramePreview = forwardRef<ProfileFramePreviewRef, ProfileFra
       // Escape variables for XSS protection
       const safeRole = escapeHtml(roleName)
       
+      if (values.frameStyle === "goa-builder") {
+        return `
+          <defs>
+            <!-- Mask to clear central cutout -->
+            <mask id="cutout">
+              <rect x="0" y="0" width="100" height="100" fill="#ffffff" />
+              <circle cx="50" cy="50" r="31" fill="#000000" />
+            </mask>
+
+            <!-- Subtle Paper Texture Filter -->
+            <filter id="paper-texture">
+              <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+              <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.04 0" />
+              <feComposite operator="in" in2="SourceGraphic" />
+            </filter>
+
+            <style>
+              .goa-title {
+                font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+                font-weight: 900;
+              }
+              .goa-sans {
+                font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+              }
+            </style>
+          </defs>
+
+          <!-- 1. Round base wrapper inside a circle border -->
+          <!-- Circular card body with central cutout -->
+          <g mask="url(#cutout)">
+            <!-- Cream circle base -->
+            <circle cx="50" cy="50" r="48" fill="#F4EFE4" />
+            
+            <!-- Texture overlay -->
+            <circle cx="50" cy="50" r="48" filter="url(#paper-texture)" opacity="0.6" />
+
+            <!-- Sunset and ocean on the left -->
+            <circle cx="25" cy="46" r="12" fill="#F7C32E" opacity="0.9" />
+            <path d="M 5,52 Q 15,48 25,52 T 48,51 L 48,65 L 5,65 Z" fill="#1E4D39" opacity="0.2" />
+            <path d="M 5,54 Q 16,50 27,54 T 48,53 L 48,65 L 5,65 Z" fill="#1E4D39" opacity="0.35" />
+            
+            <!-- Fort silhouette -->
+            <path d="M 16,53 L 16,45 L 20,45 L 20,42 L 18,42 L 18,39 L 21,39 L 21,53 Z" fill="#0F2A21" opacity="0.85" />
+            <path d="M 10,55 Q 15,50 25,52 T 34,55 Z" fill="#0F2A21" />
+
+            <!-- Left Palm tree -->
+            <path d="M 12,65 C 18,52 15,35 9,25" fill="none" stroke="#1E4D39" stroke-width="1.2" stroke-linecap="round" />
+            <path d="M 9,25 Q 16,21 21,23 Q 14,27 9,25" fill="#1E4D39" />
+            <path d="M 9,25 Q 3,19 -3,22 Q 2,26 9,25" fill="#1E4D39" />
+            <path d="M 9,25 Q 8,32 7,37 Q 9,31 9,25" fill="#1E4D39" />
+
+            <!-- Faint foliage on the right -->
+            <path d="M 88,55 C 80,42 82,25 88,15" fill="none" stroke="#1E4D39" stroke-width="0.8" stroke-dasharray="1 1" opacity="0.3" />
+            <path d="M 88,15 Q 81,11 74,13 Q 80,17 88,15" fill="#1E4D39" opacity="0.3" />
+          </g>
+
+          <!-- 2. Outer forest green circle border -->
+          <circle cx="50" cy="50" r="48" fill="none" stroke="#1E4D39" stroke-width="0.8" />
+
+          <!-- 3. Top Title and Goa Stamp -->
+          <g transform="translate(50, 14)">
+            <text fill="#0F2A21" font-size="4.8" font-weight="900" text-anchor="middle" class="goa-title" letter-spacing="-0.01">HACKER HOUSE</text>
+          </g>
+          <g transform="translate(48, 17)">
+            <text fill="#1E4D39" font-size="1.5" font-weight="900" text-anchor="middle" class="goa-sans" letter-spacing="0.12">BUILD • BREAK • INNOVATE</text>
+          </g>
+          
+          <!-- Goa Badge -->
+          <g transform="translate(73.5, 9.5) rotate(-6)">
+            <rect x="0" y="0" width="7" height="3" rx="0.8" fill="#F7C32E" stroke="#E53E3E" stroke-width="0.25" />
+            <text x="3.5" y="2.2" fill="#E53E3E" font-size="1.8" font-weight="900" class="goa-sans" text-anchor="middle">गोवा</text>
+          </g>
+
+          <!-- 4. Cutout border rings -->
+          <circle cx="50" cy="50" r="32.4" fill="none" stroke="#1E4D39" stroke-width="0.8" />
+          <circle cx="50" cy="50" r="31.8" fill="none" stroke="#F7C32E" stroke-width="0.6" />
+          <circle cx="50" cy="50" r="31.3" fill="none" stroke="#E53E3E" stroke-width="0.4" />
+
+          <!-- 5. Side Icons on the Right -->
+          <g transform="translate(95, 29)" fill="#1E4D39" class="goa-sans">
+            <!-- Code icon -->
+            <text x="0" y="0" font-size="2.6" font-weight="900" text-anchor="middle">&lt;/&gt;</text>
+            
+            <!-- Light bulb icon path -->
+            <g transform="translate(-2, 4) scale(0.18)" fill="#1E4D39">
+              <path d="M9 21h6v1H9v-1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.65 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.65-.8 3.16-2.15 4.1z" />
+            </g>
+            
+            <!-- Palm tree icon path -->
+            <g transform="translate(-2, 11) scale(0.18)" fill="#1E4D39">
+              <path d="M12 22V10m0 0a8 8 0 018-2c0 2-4 2-8 2m0 0a8 8 0 00-8-2c0 2 4 2 8 2m0 0a5 5 0 014-4m-4 4a5 5 0 00-4-4" />
+            </g>
+          </g>
+
+          <!-- 6. Builder Brush Stroke Badge at the Bottom -->
+          <g transform="translate(50, 87)">
+            <!-- Brush stroke SVG path centered -->
+            <path d="M -30,-4 C -12,-3 12,-5 30,-4 C 34,-3.8 38,-4.2 39,-3.5 C 36,-1.5 28,1 20,0.5 C 10,1 -10,0 -24,-0.5 C -28,-0.8 -32,-1.5 -31,-2.5 Z" fill="#0F2A21" />
+            <text fill="#ffffff" font-size="2.6" font-weight="900" text-anchor="middle" class="goa-sans" letter-spacing="0.18" y="-0.5">${safeRole}</text>
+          </g>
+        `
+      }
+
+      if (values.frameStyle === "goa-classic") {
+        const safeName = escapeHtml((values.name || "YOUR NAME").toUpperCase())
+        const safeGithub = escapeHtml(values.github || "hacker")
+        const safeTitle = escapeHtml(values.title || "Hacker")
+        const safeStack = escapeHtml(values.techStack || "Backend Dev")
+
+        return `
+          <defs>
+            <!-- Mask to clear central cutout -->
+            <mask id="cutout">
+              <rect x="0" y="0" width="100" height="100" fill="#ffffff" />
+              <circle cx="50" cy="50" r="31" fill="#000000" />
+            </mask>
+
+            <!-- Subtle Paper Texture Filter -->
+            <filter id="paper-texture">
+              <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+              <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.04 0" />
+              <feComposite operator="in" in2="SourceGraphic" />
+            </filter>
+
+            <!-- Fonts embedded for local canvas generation -->
+            <style>
+              .goa-title {
+                font-family: 'Playfair Display', Georgia, serif;
+                font-weight: 800;
+              }
+              .goa-sans {
+                font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+              }
+              .goa-mono {
+                font-family: 'JetBrains Mono', monospace;
+              }
+            </style>
+          </defs>
+
+          <!-- 1. Background (warm ivory/cream) with cutout -->
+          <g mask="url(#cutout)">
+            <!-- Cream Base -->
+            <rect x="0" y="0" width="100" height="100" fill="#FAF7F2" />
+            
+            <!-- Paper/Grain Texture overlay -->
+            <rect x="0" y="0" width="100" height="100" filter="url(#paper-texture)" opacity="0.6" />
+
+            <!-- Goa tropical elements behind the avatar cutout -->
+            <!-- Warm yellow sun -->
+            <circle cx="50" cy="48" r="34" fill="#FFE5A3" opacity="0.3" />
+
+            <!-- Left side: Coconut palm silhouette + waves -->
+            <!-- Sea Waves -->
+            <path d="M -10,72 Q 10,67 25,73 T 60,69" fill="none" stroke="#082A1C" stroke-width="0.3" opacity="0.2" />
+            <path d="M -10,75 Q 12,70 28,76 T 60,72" fill="none" stroke="#082A1C" stroke-width="0.15" opacity="0.1" />
+            
+            <!-- Palms trunk -->
+            <path d="M 3,74 C 7,65 5,55 -2,46" fill="none" stroke="#082A1C" stroke-width="0.8" opacity="0.25" />
+            <path d="M 6,74 C 9,67 11,60 8,53" fill="none" stroke="#082A1C" stroke-width="0.5" opacity="0.2" />
+            <!-- Palms leaves -->
+            <path d="M -2,46 Q 3,42 8,44 Q 2,47 -2,46" fill="#082A1C" opacity="0.25" />
+            <path d="M -2,46 Q -5,41 -9,43 Q -6,47 -2,46" fill="#082A1C" opacity="0.25" />
+            <path d="M -2,46 Q -4,52 -6,56 Q -3,51 -2,46" fill="#082A1C" opacity="0.25" />
+            <path d="M -2,46 Q 2,49 5,53 Q 1,48 -2,46" fill="#082A1C" opacity="0.25" />
+            
+            <path d="M 8,53 Q 12,49 16,51 Q 11,53 8,53" fill="#082A1C" opacity="0.2" />
+            <path d="M 8,53 Q 5,49 2,51 Q 5,54 8,53" fill="#082A1C" opacity="0.2" />
+            <path d="M 8,53 Q 7,58 6,62 Q 8,57 8,53" fill="#082A1C" opacity="0.2" />
+            <path d="M 8,53 Q 11,56 13,59 Q 10,55 8,53" fill="#082A1C" opacity="0.2" />
+
+            <!-- Right side: Lighthouse & house silhouette -->
+            <path d="M 110,72 Q 95,68 85,73 T 60,70" fill="none" stroke="#082A1C" stroke-width="0.3" opacity="0.2" />
+            
+            <!-- Lighthouse tower -->
+            <path d="M 88,72 L 85,53 L 83,53 L 82,72 Z" fill="#082A1C" opacity="0.15" />
+            <rect x="82.5" y="51.5" width="2" height="1.5" fill="#082A1C" opacity="0.2" />
+            <!-- Light beam -->
+            <polygon points="83.5,52 -10,30 -10,20" fill="#FFE5A3" opacity="0.08" />
+            <polygon points="83.5,52 110,40 110,35" fill="#FFE5A3" opacity="0.08" />
+            <!-- Palm tree on right -->
+            <path d="M 94,72 C 92,63 95,54 102,46" fill="none" stroke="#082A1C" stroke-width="0.7" opacity="0.2" />
+            <path d="M 102,46 Q 97,42 92,44 Q 98,47 102,46" fill="#082A1C" opacity="0.2" />
+            <path d="M 102,46 Q 105,41 109,43 Q 106,47 102,46" fill="#082A1C" opacity="0.2" />
+            <path d="M 102,46 Q 104,52 106,56 Q 103,51 102,46" fill="#082A1C" opacity="0.2" />
+            
+            <!-- Small flying birds -->
+            <path d="M 12,23 Q 14,21 16,23 Q 18,21 20,23" fill="none" stroke="#082A1C" stroke-width="0.25" opacity="0.2" />
+            <path d="M 15,26 Q 16.5,24.5 18,26 Q 19.5,24.5 21,26" fill="none" stroke="#082A1C" stroke-width="0.25" opacity="0.2" />
+          </g>
+
+          <!-- 2. Outer border and corners -->
+          <rect x="2.5" y="2.5" width="95" height="95" rx="3.5" fill="none" stroke="#082A1C" stroke-width="0.4" />
+          
+          <!-- 3. Top Header Typography and details -->
+          <!-- Top Left Label -->
+          <text x="6" y="8" fill="#D92B5A" font-size="1.6" font-weight="800" class="goa-sans" letter-spacing="0.05">28–31 OCT • GOA</text>
+          
+          <!-- Top Right Label -->
+          <text x="94" y="8" fill="#D92B5A" font-size="1.6" font-weight="800" class="goa-sans" text-anchor="end" letter-spacing="0.05">HH GOA • 2026</text>
+
+          <!-- Top Main Title: HACKER HOUSE -->
+          <g transform="translate(50, 16.5)">
+            <text fill="#082A1C" font-size="6.2" font-weight="900" text-anchor="middle" class="goa-title" letter-spacing="0.02">HACKER HOUSE</text>
+          </g>
+
+          <!-- Tilted "LET'S BUILD" stamp top-left -->
+          <g transform="translate(7.5, 12.5) rotate(-8)">
+            <rect x="0" y="0" width="10.5" height="4.5" rx="0.5" fill="#FFE5A3" stroke="#082A1C" stroke-width="0.3" />
+            <text x="5.25" y="3.3" fill="#082A1C" font-size="1.6" font-weight="950" class="goa-sans" text-anchor="middle" letter-spacing="0.02">LET'S BUILD!</text>
+          </g>
+
+          <!-- "गोवा" (Goa) badge next to HACKER HOUSE -->
+          <g transform="translate(82.5, 12.5)">
+            <rect x="0" y="0" width="11" height="4.8" rx="1.2" fill="#FFE5A3" stroke="#D92B5A" stroke-width="0.3" />
+            <text x="5.5" y="3.6" fill="#D92B5A" font-size="2.6" font-weight="900" class="goa-sans" text-anchor="middle">गोवा</text>
+          </g>
+
+          <!-- 4. Photo circular border rings -->
+          <!-- Outer: thin dark forest green -->
+          <circle cx="50" cy="50" r="32.4" fill="none" stroke="#082A1C" stroke-width="0.4" />
+          <!-- Middle: bright yellow ring -->
+          <circle cx="50" cy="50" r="31.8" fill="none" stroke="#FFE358" stroke-width="0.6" />
+          <!-- Inner: pink accent ring -->
+          <circle cx="50" cy="50" r="31.3" fill="none" stroke="#D92B5A" stroke-width="0.4" />
+
+          <!-- 5. Builder Badge (lower-left edge of photo cutout) -->
+          <g transform="translate(19, 70.5) rotate(-6)">
+            <!-- Forest green card edge styling -->
+            <rect x="0" y="0" width="17" height="5.2" rx="1.2" fill="#FAF7F2" stroke="#082A1C" stroke-width="0.4" />
+            <rect x="0.6" y="0.6" width="15.8" height="4.0" rx="0.8" fill="#FFE5A3" />
+            <text x="8.5" y="3.4" fill="#082A1C" font-size="2.2" font-weight="950" class="goa-sans" text-anchor="middle" letter-spacing="0.06">${safeRole}</text>
+          </g>
+
+          <!-- 6. Bottom credentials stamp-style ticket card -->
+          <g transform="translate(8, 73.5)">
+            <!-- Ticket background with scalloped edge cuts -->
+            <rect x="0" y="0" width="84" height="21.5" rx="2" fill="#FFFFFF" stroke="#082A1C" stroke-width="0.3" />
+            
+            <!-- Side punches -->
+            <circle cx="0" cy="10.75" r="1.6" fill="#FAF7F2" stroke="#082A1C" stroke-width="0.3" />
+            <circle cx="84" cy="10.75" r="1.6" fill="#FAF7F2" stroke="#082A1C" stroke-width="0.3" />
+            <circle cx="0" cy="10.75" r="1.45" fill="#FAF7F2" />
+            <circle cx="84" cy="10.75" r="1.45" fill="#FAF7F2" />
+
+            <!-- "NAME" Label -->
+            <text x="4.5" y="3.2" fill="#082A1C" font-size="1.2" font-weight="900" class="goa-sans" opacity="0.6" letter-spacing="0.05">NAME</text>
+
+            <!-- Name Yellow Pill -->
+            <rect x="4.5" y="4.4" width="53.5" height="5.2" rx="1" fill="#FFD43B" />
+            <text x="31.25" y="8.2" fill="#082A1C" font-size="3.2" font-weight="950" class="goa-sans" text-anchor="middle" letter-spacing="0.02">${safeName}</text>
+
+            <!-- GitHub badge pill -->
+            <rect x="59.5" y="4.4" width="20" height="5.2" rx="2.6" fill="#082A1C" />
+            <text x="69.5" y="7.9" fill="#FFFFFF" font-size="2.0" font-weight="800" class="goa-sans" text-anchor="middle">@${safeGithub}</text>
+
+            <!-- Divider Line between Name Row and Details Row -->
+            <line x1="4.5" y1="10.6" x2="79.5" y2="10.6" stroke="#082A1C" stroke-width="0.15" opacity="0.15" />
+
+            <!-- Details Row (STACK and TITLE) -->
+            <!-- STACK Column -->
+            <text x="4.5" y="12.8" fill="#082A1C" font-size="1.2" font-weight="900" class="goa-sans" opacity="0.6" letter-spacing="0.05">STACK</text>
+            <text x="4.5" y="15.8" fill="#082A1C" font-size="2.4" font-weight="800" class="goa-sans">${safeStack}</text>
+
+            <!-- Vertical Separator -->
+            <line x1="43" y1="11.8" x2="43" y2="16.2" stroke="#082A1C" stroke-width="0.2" opacity="0.2" />
+
+            <!-- TITLE Column -->
+            <text x="45.5" y="12.8" fill="#082A1C" font-size="1.2" font-weight="900" class="goa-sans" opacity="0.6" letter-spacing="0.05">TITLE</text>
+            <text x="45.5" y="15.8" fill="#082A1C" font-size="2.4" font-weight="800" class="goa-sans">${safeTitle}</text>
+
+            <!-- Divider Line between Details Row and Barcode/Pin Row -->
+            <line x1="4.5" y1="17.0" x2="79.5" y2="17.0" stroke="#082A1C" stroke-width="0.15" opacity="0.15" />
+
+            <!-- Barcode Overlay and Coordinates -->
+            <!-- Minimal Vector Barcode -->
+            <g transform="translate(4.5, 17.8)">
+              <rect x="0" y="0" width="0.3" height="1.8" fill="#082A1C" />
+              <rect x="0.6" y="0" width="0.1" height="1.8" fill="#082A1C" />
+              <rect x="1.0" y="0" width="0.4" height="1.8" fill="#082A1C" />
+              <rect x="1.7" y="0" width="0.2" height="1.8" fill="#082A1C" />
+              <rect x="2.1" y="0" width="0.1" height="1.8" fill="#082A1C" />
+              <rect x="2.4" y="0" width="0.3" height="1.8" fill="#082A1C" />
+              <rect x="3.0" y="0" width="0.1" height="1.8" fill="#082A1C" />
+              <rect x="3.3" y="0" width="0.5" height="1.8" fill="#082A1C" />
+              <rect x="4.1" y="0" width="0.2" height="1.8" fill="#082A1C" />
+              <rect x="4.5" y="0" width="0.3" height="1.8" fill="#082A1C" />
+              
+              <rect x="5.3" y="0" width="0.2" height="1.8" fill="#082A1C" />
+              <rect x="5.7" y="0" width="0.4" height="1.8" fill="#082A1C" />
+              <rect x="6.4" y="0" width="0.1" height="1.8" fill="#082A1C" />
+              <rect x="6.7" y="0" width="0.3" height="1.8" fill="#082A1C" />
+              <rect x="7.3" y="0" width="0.1" height="1.8" fill="#082A1C" />
+              <rect x="7.6" y="0" width="0.5" height="1.8" fill="#082A1C" />
+              <rect x="8.4" y="0" width="0.2" height="1.8" fill="#082A1C" />
+              <rect x="8.8" y="0" width="0.3" height="1.8" fill="#082A1C" />
+              <rect x="9.4" y="0" width="0.1" height="1.8" fill="#082A1C" />
+              
+              <rect x="10.0" y="0" width="0.4" height="1.8" fill="#082A1C" />
+              <rect x="10.7" y="0" width="0.2" height="1.8" fill="#082A1C" />
+              <rect x="11.1" y="0" width="0.1" height="1.8" fill="#082A1C" />
+              <rect x="11.4" y="0" width="0.3" height="1.8" fill="#082A1C" />
+              <rect x="12.0" y="0" width="0.1" height="1.8" fill="#082A1C" />
+              <rect x="12.3" y="0" width="0.5" height="1.8" fill="#082A1C" />
+              <rect x="13.1" y="0" width="0.2" height="1.8" fill="#082A1C" />
+              <rect x="13.5" y="0" width="0.3" height="1.8" fill="#082A1C" />
+              <rect x="14.1" y="0" width="0.1" height="1.8" fill="#082A1C" />
+
+              <rect x="14.6" y="0" width="0.4" height="1.8" fill="#082A1C" />
+              <rect x="15.2" y="0" width="0.1" height="1.8" fill="#082A1C" />
+              <rect x="15.5" y="0" width="0.3" height="1.8" fill="#082A1C" />
+              <rect x="16.0" y="0" width="0.1" height="1.8" fill="#082A1C" />
+              <rect x="16.3" y="0" width="0.5" height="1.8" fill="#082A1C" />
+              <text x="8.5" y="2.7" fill="#082A1C" font-size="0.8" class="goa-mono" text-anchor="middle" opacity="0.6">${escapeHtml(builderId || "HHGOA26-BUILDER-1947")}</text>
+            </g>
+
+            <!-- Location PIN Icon and Coordinates in right bottom -->
+            <g transform="translate(48, 17.5)">
+              <path d="M2.5,0 C1.1,0 0,1.1 0,2.5 C0,4.4 2.5,7 2.5,7 C2.5,7 5,4.4 5,2.5 C5,1.1 3.9,0 2.5,0 Z M2.5,3.5 C1.9,3.5 1.5,3.1 1.5,2.5 C1.5,1.9 1.9,1.5 2.5,1.5 C3.1,1.5 3.5,1.9 3.5,2.5 C3.5,3.1 3.1,3.5 2.5,3.5 Z" fill="#D92B5A" transform="scale(0.32)" />
+              <text x="2.2" y="1.8" fill="#082A1C" font-size="1.1" font-weight="900" class="goa-sans" opacity="0.6" letter-spacing="0.02">15.2993° N, 74.1240° E</text>
+              <text x="2.2" y="3.0" fill="#082A1C" font-size="1.1" font-weight="900" class="goa-sans" opacity="0.6" letter-spacing="0.02">GOA, INDIA</text>
+            </g>
+
+            <!-- Buttons: VIEW SCHEDULE and CONNECT details -->
+            <g transform="translate(68.5, 17.5)">
+              <text x="11" y="1.5" fill="#082A1C" font-size="1.2" font-weight="bold" class="goa-sans" text-anchor="end" opacity="0.4">VIEW SCHEDULE</text>
+              <text x="11" y="2.7" fill="#082A1C" font-size="1.2" font-weight="bold" class="goa-sans" text-anchor="end" opacity="0.4">CONNECT</text>
+            </g>
+          </g>
+        `
+      }
+
       return `
         <defs>
           <!-- Mask to clear central cutout -->
@@ -254,7 +587,9 @@ export const ProfileFramePreview = forwardRef<ProfileFramePreviewRef, ProfileFra
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="absolute rounded-full overflow-hidden bg-[#050807] z-0"
+            className={`absolute rounded-full overflow-hidden z-0 transition-colors duration-300 ${
+              values.frameStyle === "goa-builder" ? "bg-[#F4EFE4]" : values.frameStyle === "goa-classic" ? "bg-[#FAF7F2]" : "bg-[#050807]"
+            }`}
             style={{
               width: "62%",
               height: "62%",
@@ -273,16 +608,29 @@ export const ProfileFramePreview = forwardRef<ProfileFramePreviewRef, ProfileFra
                 }}
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-tr from-zinc-900 to-zinc-950 flex flex-col items-center justify-center text-zinc-500">
-                <div className="h-10 w-10 rounded-full border border-white/5 flex items-center justify-center bg-zinc-900/50 mb-2">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
+              values.frameStyle === "goa-builder" || values.frameStyle === "goa-classic" ? (
+                <div className="w-full h-full bg-[#FAF7F2] flex flex-col items-center justify-center text-[#1E4D39]/50">
+                  <div className="h-9 w-9 rounded-full border border-[#1E4D39]/10 flex items-center justify-center bg-[#FAF7F2]/50 mb-1.5">
+                    <svg className="h-5 w-5 text-[#1E4D39]/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <span className="text-[8px] uppercase font-black tracking-widest font-heading text-[#1E4D39]/50">
+                    YOUR PHOTO
+                  </span>
                 </div>
-                <span className="text-[9px] uppercase font-bold tracking-wider font-heading">
-                  Avatar Missing
-                </span>
-              </div>
+              ) : (
+                <div className="w-full h-full bg-gradient-to-tr from-zinc-900 to-zinc-950 flex flex-col items-center justify-center text-zinc-500">
+                  <div className="h-10 w-10 rounded-full border border-white/5 flex items-center justify-center bg-zinc-900/50 mb-2">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <span className="text-[9px] uppercase font-bold tracking-wider font-heading">
+                    Avatar Missing
+                  </span>
+                </div>
+              )
             )}
           </div>
 

@@ -12,5 +12,5 @@ export interface GeneratorFormValues {
   github: string
   twitter: string
   accentColor: AccentColor
-  frameStyle: "cyber" | "minimal" | "circuit"
+  frameStyle: "cyber" | "goa-classic" | "goa-builder" | "minimal" | "circuit"
 }

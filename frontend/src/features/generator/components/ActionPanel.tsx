@@ -32,14 +32,16 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
     "neon-green": "shadow-[0_0_20px_rgba(57,255,20,0.12)] hover:shadow-[0_0_25px_rgba(57,255,20,0.3)] hover:bg-[#39ff14]",
     "cyber-cyan": "shadow-[0_0_20px_rgba(0,240,255,0.12)] hover:shadow-[0_0_25px_rgba(0,240,255,0.3)] hover:bg-[#00f0ff] hover:text-black",
     "laser-purple": "shadow-[0_0_20px_rgba(189,0,255,0.12)] hover:shadow-[0_0_25px_rgba(189,0,255,0.3)] hover:bg-[#bd00ff] hover:text-white",
-    "sunset-orange": "shadow-[0_0_20px_rgba(255,92,0,0.12)] hover:shadow-[0_0_25px_rgba(255,92,0,0.3)] hover:bg-[#ff5c00] hover:text-black"
+    "sunset-orange": "shadow-[0_0_20px_rgba(255,92,0,0.12)] hover:shadow-[0_0_25px_rgba(255,92,0,0.3)] hover:bg-[#ff5c00] hover:text-black",
+    "goa-amber": "shadow-[0_0_20px_rgba(252,210,5,0.12)] hover:shadow-[0_0_25px_rgba(252,210,5,0.3)] hover:bg-[#ebd035] hover:text-black"
   }
 
   const primaryBtnColor: Record<string, string> = {
     "neon-green": "bg-[#39FF14] text-black",
     "cyber-cyan": "bg-[#00F0FF] text-black",
     "laser-purple": "bg-[#BD00FF] text-white",
-    "sunset-orange": "bg-[#FF5C00] text-black"
+    "sunset-orange": "bg-[#FF5C00] text-black",
+    "goa-amber": "bg-[#FCD205] text-black"
   }
 
   const activeGlow = accentGlowStyles[accentColor] || accentGlowStyles["neon-green"]
