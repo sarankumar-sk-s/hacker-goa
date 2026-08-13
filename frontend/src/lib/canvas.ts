@@ -141,14 +141,6 @@ export async function downloadBuilderCard(
 
           <!-- Pin -->
           <path d="M 245,126 A 10,10 0 0,1 255,116 A 10,10 0 0,1 265,126 C 265,134 255,144 255,144 C 255,144 245,134 245,126 Z M 251,126 A 4,4 0 0,0 255,130 A 4,4 0 0,0 259,126 A 4,4 0 0,0 255,122 A 4,4 0 0,0 251,126 Z" fill="#F7C32E" />
-          <!-- Globe -->
-          <circle cx="255" cy="178" r="9" stroke="#F7C32E" stroke-width="2" fill="none" />
-          <line x1="246" y1="178" x2="264" y2="178" stroke="#F7C32E" stroke-width="1.5" />
-          <path d="M 255,169 C 258,172 258,184 255,187 C 252,184 252,172 255,169 Z" stroke="#F7C32E" stroke-width="1.5" fill="none" />
-          <!-- Instagram -->
-          <rect x="246" y="219" width="18" height="18" rx="4" stroke="#F7C32E" stroke-width="2" fill="none" />
-          <circle cx="255" cy="228" r="4.5" stroke="#F7C32E" stroke-width="2" fill="none" />
-          <circle cx="260" cy="223" r="1" fill="#F7C32E" />
         </g>
       </svg>
     `
@@ -255,16 +247,12 @@ export async function downloadBuilderCard(
       console.error("Failed to load QR code for canvas:", e)
     }
 
-    // 7. Draw Metadata coordinates texts inside bottom panel
+    // 7. Draw Metadata coordinates texts inside bottom panel — only GOA, INDIA
     ctx.fillStyle = "#FFFFFF"
-    ctx.font = "900 24px 'Plus Jakarta Sans', sans-serif"
+    ctx.font = "900 28px 'Plus Jakarta Sans', sans-serif"
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
-    ctx.fillText("GOA, INDIA", 295, 1295)
-
-    ctx.font = "500 22px 'Plus Jakarta Sans', sans-serif"
-    ctx.fillText("www.hackerhousegoa.com", 295, 1347)
-    ctx.fillText("@hackerhousegoa", 295, 1399)
+    ctx.fillText("GOA, INDIA", 295, 1340)
 
     // 8. Trigger download
     const dataUrl = canvas.toDataURL("image/png")
