@@ -19,8 +19,12 @@ import { StepIndicator } from "./features/generator/components/StepIndicator"
 // Hooks & context
 import { useGenerator } from "./features/generator/hooks/useGenerator"
 import { api } from "./lib/api"
+import { useTheme } from "./context/ThemeContext"
+import { ThemeToggle } from "./components/ThemeToggle"
 
 function App() {
+  const { theme, activeGradient } = useTheme()
+  const isGoaNight = activeGradient === "goa-night"
   const [activeTab, setActiveTab] = useState<GeneratorTab>("id_card")
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [zoom, setZoom] = useState(1.0)
@@ -370,15 +374,28 @@ function App() {
       {view === "landing" ? (
         <div className="relative flex-grow flex flex-col justify-between overflow-x-hidden">
           
-          {/* Background image & dark overlays */}
+          {/* Background image & overlays */}
           <div 
             className="absolute inset-0 bg-cover bg-center pointer-events-none transition-opacity duration-700"
             style={{ 
               backgroundImage: `url('/goa_landing_bg.png')`,
+              filter: isGoaNight ? "brightness(0.6) contrast(1.15)" : undefined
             }} 
           />
-          <div className="absolute inset-0 bg-black/65 pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-[#09090b] pointer-events-none" />
+          <div className={`absolute inset-0 pointer-events-none transition-colors duration-500 ${
+            isGoaNight
+              ? "bg-[#052017]/75"
+              : theme === "light"
+              ? "bg-[#FFF7E6]/75"
+              : "bg-black/65"
+          }`} />
+          <div className={`absolute inset-0 pointer-events-none transition-colors duration-500 ${
+            isGoaNight
+              ? "bg-gradient-to-b from-[#052017]/90 via-[#0B4B2E]/70 to-[#052017]"
+              : theme === "light" 
+              ? "bg-gradient-to-b from-[#FFF7E6]/90 via-[#FFF7E6]/80 to-[#FFF7E6]" 
+              : "bg-gradient-to-b from-black/40 via-black/20 to-[#09090b]"
+          }`} />
 
           {/* Navigation Header */}
           <header className="w-full z-40 relative">
@@ -387,27 +404,41 @@ function App() {
                 onClick={navigateToLanding} 
                 className="flex items-center gap-3 hover:opacity-90 transition-opacity bg-transparent border-none p-0 cursor-pointer"
               >
-                <svg viewBox="0 0 40 40" className="h-9 w-9 text-[#FCD205]">
+                <svg viewBox="0 0 40 40" className={`h-9 w-9 ${
+                  isGoaNight ? "text-[#FFC700]" : theme === "light" ? "text-[#1E6F43]" : "text-[#FCD205]"
+                }`}>
                   <rect x="6" y="6" width="8" height="28" rx="2" fill="currentColor" />
                   <rect x="26" y="6" width="8" height="28" rx="2" fill="currentColor" />
                   <rect x="14" y="16" width="12" height="8" rx="1" fill="currentColor" />
-                  <circle cx="10" cy="10" r="2" fill="#09090b" />
-                  <circle cx="30" cy="10" r="2" fill="#09090b" />
+                  <circle cx="10" cy="10" r="2" fill={isGoaNight ? "#052017" : theme === "light" ? "#FFF7E6" : "#09090b"} />
+                  <circle cx="30" cy="10" r="2" fill={isGoaNight ? "#052017" : theme === "light" ? "#FFF7E6" : "#09090b"} />
                 </svg>
                 <div className="flex flex-col text-left">
-                  <span className="font-heading font-black text-xs sm:text-sm uppercase tracking-widest text-white leading-tight">
+                  <span className={`font-heading font-black text-xs sm:text-sm uppercase tracking-widest leading-tight ${
+                    theme === "light" && !isGoaNight ? "text-[#052017]" : "text-white"
+                  }`}>
                     HACKER HOUSE
                   </span>
-                  <span className="font-heading font-black text-[10px] sm:text-xs uppercase tracking-widest text-[#FCD205] leading-tight">
+                  <span className={`font-heading font-black text-[10px] sm:text-xs uppercase tracking-widest leading-tight ${
+                    isGoaNight ? "text-[#FFC700]" : theme === "light" ? "text-[#1E6F43]" : "text-[#FCD205]"
+                  }`}>
                     GOA
                   </span>
                 </div>
               </button>
 
-              <div>
+              {/* Right Top Corner: Theme Toggle & Action */}
+              <div className="flex items-center gap-3">
+                <ThemeToggle />
                 <Button
                   onClick={navigateToGenerator}
-                  className="bg-[#FCD205] hover:bg-[#ebd035] text-black border-none text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-3 py-2 sm:px-5 sm:py-2.5 shadow-md flex items-center gap-1.5 transition-all duration-200 cursor-pointer animate-pulse hover:animate-none"
+                  className={
+                    isGoaNight
+                      ? "bg-[#FFC700] hover:bg-[#ebd035] text-black border-none text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-3 py-2 sm:px-5 sm:py-2.5 shadow-[0_0_15px_rgba(0,255,135,0.35)] flex items-center gap-1.5 transition-all duration-200 cursor-pointer"
+                      : theme === "light"
+                      ? "bg-gradient-to-r from-[#1E6F43] to-[#FFC700] hover:opacity-95 text-white border-none text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-3 py-2 sm:px-5 sm:py-2.5 shadow-md flex items-center gap-1.5 transition-all duration-200 cursor-pointer"
+                      : "bg-[#FCD205] hover:bg-[#ebd035] text-black border-none text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-3 py-2 sm:px-5 sm:py-2.5 shadow-md flex items-center gap-1.5 transition-all duration-200 cursor-pointer animate-pulse hover:animate-none"
+                  }
                 >
                   BUILD YOUR CARD <span className="text-xs">→</span>
                 </Button>
@@ -425,27 +456,37 @@ function App() {
                 {/* Event badge indicators */}
                 <div className="space-y-2 text-left">
                   <div className="flex items-center gap-2">
-                    <span className="h-4.5 w-[3px] bg-[#FCD205] rounded-full inline-block"></span>
-                    <span className="text-[11px] uppercase font-heading font-black tracking-widest text-[#FCD205]">
+                    <span className={`h-4.5 w-[3px] rounded-full inline-block ${
+                      isGoaNight ? "bg-[#FFC700]" : theme === "light" ? "bg-[#1E6F43]" : "bg-[#FCD205]"
+                    }`}></span>
+                    <span className={`text-[11px] uppercase font-heading font-black tracking-widest ${
+                      isGoaNight ? "text-[#FFC700]" : theme === "light" ? "text-[#1E6F43]" : "text-[#FCD205]"
+                    }`}>
                       HACKER HOUSE GOA 2026
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="h-4.5 w-[3px] bg-[#D92B5A] rounded-full inline-block"></span>
-                    <span className="text-[11px] uppercase font-heading font-black tracking-widest text-[#D92B5A]">
+                    <span className="h-4.5 w-[3px] bg-[#FF5CA8] rounded-full inline-block"></span>
+                    <span className="text-[11px] uppercase font-heading font-black tracking-widest text-[#FF5CA8]">
                       28–31 OCT · GOA, INDIA
                     </span>
                   </div>
                 </div>
 
                 {/* Heading */}
-                <h1 className="text-5xl sm:text-6xl md:text-7xl font-heading font-black tracking-tight leading-[1.05] uppercase text-left text-white max-w-2xl">
+                <h1 className={`text-5xl sm:text-6xl md:text-7xl font-heading font-black tracking-tight leading-[1.05] uppercase text-left max-w-2xl ${
+                  theme === "light" && !isGoaNight ? "text-[#052017]" : "text-white"
+                }`}>
                   BUILD YOUR <br />
-                  <span className="text-[#FCD205]">HACKER IDENTITY.</span>
+                  <span className={isGoaNight ? "text-[#FFC700]" : "text-active-gradient"}>
+                    HACKER IDENTITY.
+                  </span>
                 </h1>
 
                 {/* Subtitle description */}
-                <p className="text-zinc-350 text-sm md:text-base font-sans max-w-lg text-left leading-relaxed">
+                <p className={`text-sm md:text-base font-sans max-w-lg text-left leading-relaxed ${
+                  theme === "light" && !isGoaNight ? "text-[#1E6F43]" : "text-zinc-200 font-medium"
+                }`}>
                   Create your Hacker House Goa 2026 Builder Card and share it with your community.
                 </p>
 
@@ -453,7 +494,11 @@ function App() {
                 <div className="flex flex-wrap gap-4 justify-start pt-2">
                   <Button
                     onClick={navigateToGenerator}
-                    className="bg-[#FCD205] hover:bg-[#ebd035] text-black font-black uppercase tracking-wider text-xs px-6 py-4 shadow-[0_4px_20px_rgba(252,210,5,0.25)] hover:shadow-[0_4px_25px_rgba(252,210,5,0.4)] transition-all duration-300 cursor-pointer"
+                    className={
+                      isGoaNight
+                        ? "bg-[#FFC700] hover:bg-[#ebd035] text-black font-black uppercase tracking-wider text-xs px-6 py-4 shadow-[0_0_20px_rgba(0,255,135,0.4)] transition-all duration-300 cursor-pointer border-none"
+                        : "bg-active-gradient hover:opacity-95 text-white font-black uppercase tracking-wider text-xs px-6 py-4 shadow-lg transition-all duration-300 cursor-pointer border-none"
+                    }
                   >
                     CREATE YOUR BUILDER CARD <span className="text-xs">→</span>
                   </Button>
@@ -465,7 +510,9 @@ function App() {
               <div className="lg:col-span-5 flex justify-center lg:justify-end">
                 <div className="relative">
                   {/* Subtle soft glowing backplate */}
-                  <div className="absolute inset-0 bg-[#FCD205]/5 blur-[100px] rounded-full pointer-events-none" />
+                  <div className={`absolute inset-0 blur-[100px] rounded-full pointer-events-none ${
+                    theme === "light" ? "bg-[#B7DCC6]/30" : "bg-[#FCD205]/5"
+                  }`} />
                   
                   {/* Floating and rotated card container */}
                   <motion.div
@@ -500,51 +547,61 @@ function App() {
 
           {/* Bottom Information Strip */}
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pb-10 pt-4 z-10 relative">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6 rounded-2xl border border-white/5 bg-black/45 backdrop-blur-md">
+            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6 rounded-2xl border backdrop-blur-md transition-colors duration-300 ${
+              theme === "light"
+                ? "border-[#0B4B2E]/15 bg-white/80 shadow-sm"
+                : "border-white/5 bg-black/45"
+            }`}>
               {/* Item 1 */}
               <div className="flex items-start gap-4 text-left">
-                <MapPin className="h-6 w-6 text-[#FCD205] shrink-0 mt-1" />
+                <MapPin className={`h-6 w-6 shrink-0 mt-1 ${theme === "light" ? "text-[#1E6F43]" : "text-[#FCD205]"}`} />
                 <div>
-                  <h4 className="text-xs uppercase font-heading font-black text-white tracking-wider">
+                  <h4 className={`text-xs uppercase font-heading font-black tracking-wider ${theme === "light" ? "text-[#052017]" : "text-white"}`}>
                     Goa, India
                   </h4>
-                  <p className="text-[11px] text-zinc-400 font-sans mt-0.5 leading-relaxed">
+                  <p className={`text-[11px] font-sans mt-0.5 leading-relaxed ${theme === "light" ? "text-[#1E6F43]" : "text-zinc-400"}`}>
                     Build something unforgettable.
                   </p>
                 </div>
               </div>
               {/* Item 2 */}
-              <div className="flex items-start gap-4 text-left border-t sm:border-t-0 sm:border-l border-white/5 pt-4 sm:pt-0 sm:pl-6">
-                <Calendar className="h-6 w-6 text-[#FCD205] shrink-0 mt-1" />
+              <div className={`flex items-start gap-4 text-left border-t sm:border-t-0 sm:border-l pt-4 sm:pt-0 sm:pl-6 ${
+                theme === "light" ? "border-[#0B4B2E]/10" : "border-white/5"
+              }`}>
+                <Calendar className={`h-6 w-6 shrink-0 mt-1 ${theme === "light" ? "text-[#1E6F43]" : "text-[#FCD205]"}`} />
                 <div>
-                  <h4 className="text-xs uppercase font-heading font-black text-white tracking-wider">
+                  <h4 className={`text-xs uppercase font-heading font-black tracking-wider ${theme === "light" ? "text-[#052017]" : "text-white"}`}>
                     28–31 OCT 2026
                   </h4>
-                  <p className="text-[11px] text-zinc-400 font-sans mt-0.5 leading-relaxed">
+                  <p className={`text-[11px] font-sans mt-0.5 leading-relaxed ${theme === "light" ? "text-[#1E6F43]" : "text-zinc-400"}`}>
                     4 days of building, hacking and connecting.
                   </p>
                 </div>
               </div>
               {/* Item 3 */}
-              <div className="flex items-start gap-4 text-left border-t lg:border-t-0 lg:border-l border-white/5 pt-4 lg:pt-0 lg:pl-6">
-                <Users className="h-6 w-6 text-[#FCD205] shrink-0 mt-1" />
+              <div className={`flex items-start gap-4 text-left border-t lg:border-t-0 lg:border-l pt-4 lg:pt-0 lg:pl-6 ${
+                theme === "light" ? "border-[#0B4B2E]/10" : "border-white/5"
+              }`}>
+                <Users className={`h-6 w-6 shrink-0 mt-1 ${theme === "light" ? "text-[#1E6F43]" : "text-[#FCD205]"}`} />
                 <div>
-                  <h4 className="text-xs uppercase font-heading font-black text-white tracking-wider">
+                  <h4 className={`text-xs uppercase font-heading font-black tracking-wider ${theme === "light" ? "text-[#052017]" : "text-white"}`}>
                     100+
                   </h4>
-                  <p className="text-[11px] text-zinc-400 font-sans mt-0.5 leading-relaxed">
+                  <p className={`text-[11px] font-sans mt-0.5 leading-relaxed ${theme === "light" ? "text-[#1E6F43]" : "text-zinc-400"}`}>
                     Builders / Makers / Hackers
                   </p>
                 </div>
               </div>
               {/* Item 4 */}
-              <div className="flex items-start gap-4 text-left border-t lg:border-t-0 lg:border-l border-white/5 pt-4 lg:pt-0 lg:pl-6">
-                <MessageSquare className="h-6 w-6 text-[#FCD205] shrink-0 mt-1" />
+              <div className={`flex items-start gap-4 text-left border-t lg:border-t-0 lg:border-l pt-4 lg:pt-0 lg:pl-6 ${
+                theme === "light" ? "border-[#0B4B2E]/10" : "border-white/5"
+              }`}>
+                <MessageSquare className={`h-6 w-6 shrink-0 mt-1 ${theme === "light" ? "text-[#1E6F43]" : "text-[#FCD205]"}`} />
                 <div>
-                  <h4 className="text-xs uppercase font-heading font-black text-white tracking-wider">
+                  <h4 className={`text-xs uppercase font-heading font-black tracking-wider ${theme === "light" ? "text-[#052017]" : "text-white"}`}>
                     CONNECT
                   </h4>
-                  <p className="text-[11px] text-zinc-400 font-sans mt-0.5 leading-relaxed">
+                  <p className={`text-[11px] font-sans mt-0.5 leading-relaxed ${theme === "light" ? "text-[#1E6F43]" : "text-zinc-400"}`}>
                     Meet builders from everywhere.
                   </p>
                 </div>
@@ -555,55 +612,86 @@ function App() {
         </div>
       ) : (
         <div className="animate-fadeIn w-full flex flex-col justify-between flex-grow relative">
-          {/* Background image & dark overlays for Generator */}
+          {/* Background image & overlays for Generator */}
           <div 
             className="absolute inset-0 bg-cover bg-center pointer-events-none opacity-25 transition-opacity duration-700 -z-10"
             style={{ 
               backgroundImage: `url('/goa_landing_bg.png')`,
-              filter: "brightness(0.35) contrast(1.1)"
+              filter: isGoaNight ? "brightness(0.5) contrast(1.15) hue-rotate(80deg)" : theme === "light" ? "brightness(0.9) contrast(1.05)" : "brightness(0.35) contrast(1.1)"
             }} 
           />
-          <div className="absolute inset-0 bg-black/75 pointer-events-none -z-10" />
-          {/* Header */}
-          <header className="sticky top-0 z-40 border-b border-white/5 bg-background/75 backdrop-blur-md">
+          <div className={`absolute inset-0 pointer-events-none -z-10 transition-colors duration-500 ${
+            isGoaNight
+              ? "bg-[#052017]/85"
+              : theme === "light"
+              ? "bg-[#FFF7E6]/85"
+              : "bg-black/75"
+          }`} />
+
+          {/* Sticky Header */}
+          <header className={`sticky top-0 z-40 border-b backdrop-blur-md transition-colors duration-300 ${
+            isGoaNight
+              ? "border-[#1E6F43]/30 bg-[#052017]/90"
+              : theme === "light" 
+              ? "border-[#0B4B2E]/15 bg-[#FFF7E6]/85" 
+              : "border-white/5 bg-background/75"
+          }`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
               <button 
                 onClick={navigateToLanding} 
                 className="flex items-center gap-3 hover:opacity-90 transition-opacity bg-transparent border-none p-0 cursor-pointer"
               >
-                <svg viewBox="0 0 40 40" className="h-8 w-8 text-[#FCD205]">
+                <svg viewBox="0 0 40 40" className={`h-8 w-8 ${
+                  isGoaNight ? "text-[#FFC700]" : theme === "light" ? "text-[#1E6F43]" : "text-[#FCD205]"
+                }`}>
                   <rect x="6" y="6" width="8" height="28" rx="2" fill="currentColor" />
                   <rect x="26" y="6" width="8" height="28" rx="2" fill="currentColor" />
                   <rect x="14" y="16" width="12" height="8" rx="1" fill="currentColor" />
-                  <circle cx="10" cy="10" r="2" fill="#09090b" />
-                  <circle cx="30" cy="10" r="2" fill="#09090b" />
+                  <circle cx="10" cy="10" r="2" fill={isGoaNight ? "#052017" : theme === "light" ? "#FFF7E6" : "#09090b"} />
+                  <circle cx="30" cy="10" r="2" fill={isGoaNight ? "#052017" : theme === "light" ? "#FFF7E6" : "#09090b"} />
                 </svg>
                 <div className="flex flex-col text-left">
-                  <span className="font-heading font-black text-xs uppercase tracking-widest text-white leading-tight">
+                  <span className={`font-heading font-black text-xs uppercase tracking-widest leading-tight ${
+                    theme === "light" && !isGoaNight ? "text-[#052017]" : "text-white"
+                  }`}>
                     HACKER HOUSE
                   </span>
-                  <span className="font-heading font-black text-[10px] uppercase tracking-widest text-[#FCD205] leading-tight">
+                  <span className={`font-heading font-black text-[10px] uppercase tracking-widest leading-tight ${
+                    isGoaNight ? "text-[#FFC700]" : theme === "light" ? "text-[#1E6F43]" : "text-[#FCD205]"
+                  }`}>
                     GOA
                   </span>
                 </div>
               </button>
 
-              <nav className="hidden md:flex items-center gap-6 text-[10px] uppercase font-heading font-black tracking-wider text-zinc-400">
+              <nav className={`hidden md:flex items-center gap-6 text-[10px] uppercase font-heading font-black tracking-wider ${
+                isGoaNight ? "text-zinc-200" : theme === "light" && !isGoaNight ? "text-[#1E6F43]" : "text-zinc-300"
+              }`}>
                 <button 
                   onClick={navigateToLanding} 
-                  className="hover:text-white cursor-pointer transition-colors bg-transparent border-none p-0"
+                  className={`cursor-pointer transition-colors bg-transparent border-none p-0 ${
+                    theme === "light" && !isGoaNight ? "hover:text-[#052017]" : "hover:text-white"
+                  }`}
                 >
                   Home
                 </button>
-                <span className="text-zinc-600">|</span>
-                <span className="text-neon-emerald">Generator</span>
+                <span className={isGoaNight ? "text-[#1E6F43]" : theme === "light" && !isGoaNight ? "text-[#0B4B2E]/30" : "text-zinc-600"}>|</span>
+                <span className={isGoaNight ? "text-[#00FF87] font-bold" : theme === "light" && !isGoaNight ? "text-[#052017] font-bold" : "text-neon-emerald font-bold"}>Generator</span>
               </nav>
 
-              <div>
+              {/* Right Top Corner Header Controls */}
+              <div className="flex items-center gap-3">
+                <ThemeToggle />
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="border-white/10 text-[10px] font-black uppercase tracking-wider hover:bg-white/5"
+                  className={
+                    isGoaNight
+                      ? "border-[#1E6F43]/40 text-white bg-[#052017]/80 hover:bg-[#0B4B2E] text-[10px] font-black uppercase tracking-wider"
+                      : theme === "light" && !isGoaNight
+                      ? "border-[#0B4B2E]/20 text-[#052017] bg-white/80 hover:bg-white text-[10px] font-black uppercase tracking-wider shadow-sm"
+                      : "border-white/10 text-white text-[10px] font-black uppercase tracking-wider hover:bg-white/5"
+                  }
                   onClick={loadDemoPhoto}
                 >
                   Demo Profile
@@ -612,31 +700,33 @@ function App() {
             </div>
           </header>
 
-          {/* Generator main panel (Existing logic reused) */}
+          {/* Generator main panel */}
           <main className="flex-grow">
             <section className="relative pt-12 pb-6 px-6 text-center max-w-4xl mx-auto">
               <div className="space-y-4">
                 <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border ${
-                  isGoaTheme
-                    ? "border-[#FCD205]/20 bg-[#FCD205]/5 text-[#FCD205] shadow-[0_0_12px_rgba(252,210,5,0.08)]"
-                    : "border-neon-emerald/20 bg-neon-emerald/5 text-neon-emerald shadow-[0_0_12px_rgba(0,255,135,0.08)]"
+                  isGoaNight
+                    ? "border-[#FFC700]/50 bg-[#052017]/90 text-[#FFC700] shadow-[0_0_15px_rgba(0,255,135,0.25)]"
+                    : theme === "light" && !isGoaNight
+                    ? "border-[#0B4B2E]/20 bg-white/90 text-[#052017] shadow-sm"
+                    : "border-neon-emerald/30 bg-black/60 text-[#00FF87] shadow-[0_0_12px_rgba(0,255,135,0.15)]"
                 } text-[10px] font-black uppercase tracking-widest font-heading`}>
-                  <Sparkles className="h-3.5 w-3.5" />
+                  <Sparkles className={`h-3.5 w-3.5 ${isGoaNight ? "text-[#FFC700]" : theme === "light" && !isGoaNight ? "text-[#1E6F43]" : "text-[#00FF87]"}`} />
                   Registration Pass Suite
                 </div>
 
-                <h1 className="text-4xl sm:text-6xl font-black text-white font-heading tracking-tight leading-[1.05] max-w-3xl mx-auto uppercase">
+                <h1 className={`text-4xl sm:text-6xl font-black font-heading tracking-tight leading-[1.05] max-w-3xl mx-auto uppercase ${
+                  theme === "light" && !isGoaNight ? "text-[#052017]" : "text-white"
+                }`}>
                   Hacker House Goa <br className="hidden sm:inline" />
-                  <span className={`text-transparent bg-clip-text bg-gradient-to-r ${
-                    isGoaTheme
-                      ? "from-white via-[#FAF7F2] to-[#FCD205]"
-                      : "from-neon-emerald via-[#00ff87] to-cyan-400"
-                  }`}>
+                  <span className={isGoaNight ? "text-[#FFC700]" : "text-active-gradient"}>
                     Builder Generator
                   </span>
                 </h1>
 
-                <p className="text-zinc-400 text-sm sm:text-base max-w-xl mx-auto font-sans leading-relaxed">
+                <p className={`text-sm sm:text-base max-w-xl mx-auto font-sans leading-relaxed ${
+                  isGoaNight ? "text-zinc-300" : theme === "light" ? "text-[#1E6F43]" : "text-zinc-400"
+                }`}>
                   Instantly overlay the verified event profile frame or compile your digital vertical builder pass for prints and social sharing.
                 </p>
               </div>
@@ -648,24 +738,28 @@ function App() {
                 
                 {/* LEFT SIDE */}
                 <div className="lg:col-span-7 space-y-6">
-                  <Card className="p-1.5 flex gap-1 bg-zinc-950/40" hoverEffect={false}>
+                  <Card className={`p-1.5 flex gap-1 ${
+                    isGoaNight 
+                      ? "bg-[#052017]/80 border-[#1E6F43]/30" 
+                      : theme === "light" 
+                      ? "bg-white/70 border-[#0B4B2E]/15" 
+                      : "bg-zinc-950/40"
+                  }`} hoverEffect={false}>
                     <button
                       onClick={() => setActiveTab("id_card")}
                       role="tab"
                       aria-selected={activeTab === "id_card"}
-                      className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider font-heading transition-all duration-200 cursor-pointer relative focus:outline-none focus:ring-1 ${
-                        isGoaTheme ? "focus:ring-[#FCD205]/30" : "focus:ring-neon-emerald/30"
-                      } ${
-                        activeTab === "id_card" ? "text-black z-10 font-black" : "text-zinc-400 hover:text-zinc-200"
+                      className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider font-heading transition-all duration-200 cursor-pointer relative focus:outline-none focus:ring-1 focus:ring-[#00FF87]/30 ${
+                        activeTab === "id_card" 
+                          ? (isGoaNight ? "text-black z-10 font-black" : "text-white z-10 font-black") 
+                          : (isGoaNight ? "text-white/90 hover:text-white z-10 font-bold" : theme === "light" ? "text-[#052017] hover:text-[#1E6F43]" : "text-zinc-300 hover:text-white")
                       }`}
                     >
                       {activeTab === "id_card" && (
                         <motion.div
                           layoutId="activeTabIndicator"
                           className={`absolute inset-0 rounded-lg -z-10 ${
-                            isGoaTheme
-                              ? "bg-[#FCD205] shadow-[0_0_12px_rgba(252,210,5,0.4)]"
-                              : "bg-neon-emerald shadow-[0_0_12px_rgba(0,255,135,0.4)]"
+                            isGoaNight ? "bg-[#FFC700] shadow-[0_0_15px_rgba(0,255,135,0.35)]" : "bg-active-gradient shadow-md"
                           }`}
                         />
                       )}
@@ -676,19 +770,17 @@ function App() {
                       onClick={() => setActiveTab("frame")}
                       role="tab"
                       aria-selected={activeTab === "frame"}
-                      className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider font-heading transition-all duration-200 cursor-pointer relative focus:outline-none focus:ring-1 ${
-                        isGoaTheme ? "focus:ring-[#FCD205]/30" : "focus:ring-neon-emerald/30"
-                      } ${
-                        activeTab === "frame" ? "text-black z-10 font-black" : "text-zinc-400 hover:text-zinc-200"
+                      className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider font-heading transition-all duration-200 cursor-pointer relative focus:outline-none focus:ring-1 focus:ring-[#00FF87]/30 ${
+                        activeTab === "frame" 
+                          ? (isGoaNight ? "text-black z-10 font-black" : "text-white z-10 font-black") 
+                          : (isGoaNight ? "text-white/90 hover:text-white z-10 font-bold" : theme === "light" ? "text-[#052017] hover:text-[#1E6F43]" : "text-zinc-300 hover:text-white")
                       }`}
                     >
                       {activeTab === "frame" && (
                         <motion.div
                           layoutId="activeTabIndicator"
                           className={`absolute inset-0 rounded-lg -z-10 ${
-                            isGoaTheme
-                              ? "bg-[#FCD205] shadow-[0_0_12px_rgba(252,210,5,0.4)]"
-                              : "bg-neon-emerald shadow-[0_0_12px_rgba(0,255,135,0.4)]"
+                            isGoaNight ? "bg-[#FFC700] shadow-[0_0_15px_rgba(0,255,135,0.35)]" : "bg-active-gradient shadow-md"
                           }`}
                         />
                       )}
@@ -696,21 +788,39 @@ function App() {
                     </button>
                   </Card>
 
-                  <Card className="p-6 bg-zinc-950/20" hoverEffect={false}>
-                    <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 font-heading mb-4 text-left">
+                  <Card className={`p-6 ${
+                    isGoaNight 
+                      ? "bg-[#052017]/85 border-[#1E6F43]/35 text-white" 
+                      : theme === "light" 
+                      ? "bg-white/80 border-[#0B4B2E]/15" 
+                      : "bg-zinc-950/20"
+                  }`} hoverEffect={false}>
+                    <h3 className={`text-xs font-black uppercase tracking-widest font-heading mb-4 text-left ${
+                      isGoaNight ? "text-zinc-200" : theme === "light" ? "text-[#052017]" : "text-zinc-400"
+                    }`}>
                       Step 1: Upload Photo
                     </h3>
                     <UploadZone onImageSelected={handleImageSelected} selectedImage={selectedImage} frameStyle={formValues.frameStyle} />
                   </Card>
 
-                  <Card className="p-6 bg-zinc-950/20" hoverEffect={false}>
-                    <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 font-heading mb-4 text-left">
+                  <Card className={`p-6 ${
+                    isGoaNight 
+                      ? "bg-[#052017]/85 border-[#1E6F43]/35 text-white" 
+                      : theme === "light" 
+                      ? "bg-white/80 border-[#0B4B2E]/15" 
+                      : "bg-zinc-950/20"
+                  }`} hoverEffect={false}>
+                    <h3 className={`text-xs font-black uppercase tracking-widest font-heading mb-4 text-left ${
+                      isGoaNight ? "text-zinc-200" : theme === "light" ? "text-[#052017]" : "text-zinc-400"
+                    }`}>
                       Step 2: Configure Details
                     </h3>
                     <GeneratorForm values={formValues} onChange={handleFieldChange} activeTab={activeTab} />
                     
                     {selectedImage && (activeTab === "frame" || isGoaTheme) && (
-                      <div className="mt-6 border-t border-white/5 pt-5 animate-fadeIn">
+                      <div className={`mt-6 border-t pt-5 animate-fadeIn ${
+                        isGoaNight ? "border-[#1E6F43]/30" : theme === "light" ? "border-[#0B4B2E]/10" : "border-white/5"
+                      }`}>
                         <Slider
                           label="Adjust Crop Zoom"
                           min={1.0}
@@ -728,21 +838,35 @@ function App() {
                 {/* RIGHT SIDE */}
                 <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6">
                   <Card 
-                    className="p-6 flex flex-col justify-between items-center text-center bg-zinc-950/30 border border-white/5 relative" 
+                    className={`p-3.5 sm:p-6 flex flex-col justify-between items-center text-center relative ${
+                      isGoaNight 
+                        ? "bg-[#052017]/85 border-[#1E6F43]/35 text-white" 
+                        : theme === "light" 
+                        ? "bg-white/90 border-[#0B4B2E]/15 shadow-sm" 
+                        : "bg-zinc-950/30 border-white/5"
+                    }`} 
                     hoverEffect={false} 
                     glowEffect={selectedImage !== null}
                   >
-                    <div className="w-full flex items-center justify-between border-b border-white/5 pb-4 mb-4 select-none">
-                      <span className="text-xs uppercase font-heading font-black text-zinc-300 tracking-wider">
+                    <div className={`w-full flex items-center justify-between border-b pb-4 mb-4 select-none ${
+                      isGoaNight ? "border-[#1E6F43]/30" : theme === "light" ? "border-[#0B4B2E]/10" : "border-white/5"
+                    }`}>
+                      <span className={`text-xs uppercase font-heading font-black tracking-wider ${
+                        isGoaNight ? "text-white" : theme === "light" ? "text-[#052017]" : "text-zinc-300"
+                      }`}>
                         Live Preview Output
                       </span>
-                      <span className="flex items-center gap-1.5 text-[9px] text-zinc-450 uppercase font-mono font-bold">
-                        <ShieldCheck className="h-4 w-4 text-neon-emerald" />
+                      <span className={`flex items-center gap-1.5 text-[9px] uppercase font-mono font-bold ${
+                        isGoaNight ? "text-[#00FF87]" : theme === "light" ? "text-[#1E6F43]" : "text-zinc-450"
+                      }`}>
+                        <ShieldCheck className={`h-4 w-4 ${isGoaNight ? "text-[#00FF87]" : theme === "light" ? "text-[#1E6F43]" : "text-neon-emerald"}`} />
                         Verified Canvas
                       </span>
                     </div>
 
-                    <div className="w-full min-h-[350px] flex items-center justify-center bg-zinc-950/50 rounded-2xl border border-white/5 py-2">
+                    <div className={`w-full min-h-[350px] flex items-center justify-center rounded-2xl border py-2 ${
+                      isGoaNight ? "bg-[#041811]/70 border-[#1E6F43]/30" : theme === "light" ? "bg-[#FFF7E6]/50 border-[#0B4B2E]/10" : "bg-zinc-950/50 border-white/5"
+                    }`}>
                       <AnimatePresence mode="wait">
                         {activeTab === "id_card" ? (
                           <motion.div
@@ -804,7 +928,7 @@ function App() {
                     </div>
                   </Card>
 
-                  <Card className="p-4 bg-zinc-950/20" hoverEffect={false}>
+                  <Card className={`p-4 ${theme === "light" ? "bg-white/80 border-[#0B4B2E]/15" : "bg-zinc-950/20"}`} hoverEffect={false}>
                     <StepIndicator steps={steps} />
                   </Card>
                 </div>
@@ -813,13 +937,22 @@ function App() {
             </section>
 
             {/* Footer */}
-            <footer className="w-full border-t border-white/5 py-10 mt-16 text-center text-zinc-450 select-none">
+            <footer className={`w-full border-t py-10 mt-16 text-center select-none ${
+              theme === "light" ? "border-[#0B4B2E]/15 text-[#1E6F43]" : "border-white/5 text-zinc-450"
+            }`}>
               <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] font-sans font-medium">
                 <p>© 2026 Hacker House Goa. Built with React + TypeScript.</p>
                 <div className="flex gap-4">
-                  <span className="text-zinc-500">Goa, IN // 15.2993° N, 74.1240° E</span>
+                  <span className={theme === "light" ? "text-[#052017]" : "text-zinc-500"}>Goa, IN // 15.2993° N, 74.1240° E</span>
                   <span>•</span>
-                  <a href="https://x.com/hackerhousegoa" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Official X</a>
+                  <a 
+                    href="https://x.com/hackerhousegoa" 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className={`transition-colors ${theme === "light" ? "hover:text-[#052017] font-bold" : "hover:text-white"}`}
+                  >
+                    Official X
+                  </a>
                 </div>
               </div>
             </footer>

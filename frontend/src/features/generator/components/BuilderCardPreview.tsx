@@ -580,10 +580,14 @@ export const BuilderCardPreview = forwardRef<BuilderCardPreviewRef, BuilderCardP
               </div>
             )}
 
-            {/* Background template overlay (rendered on top of photo, but has transparent cutout) */}
+            {/* Background template overlay (rendered on top of photo, with exact 300x450 pixel mapping for mobile) */}
             <div
-              className="absolute inset-0 bg-cover bg-center pointer-events-none z-10 animate-fadeIn"
-              style={{ backgroundImage: `url('/goa_heritage_bg.png')` }}
+              className="absolute inset-0 bg-no-repeat pointer-events-none z-10 animate-fadeIn"
+              style={{ 
+                backgroundImage: `url('/goa_heritage_bg.png')`,
+                backgroundSize: "300px 450px",
+                backgroundPosition: "0 0"
+              }}
             />
 
             {/* Dynamic Pink/Magenta Builder Badge (rotates -6deg, overlaps lower left of circle) */}
@@ -591,34 +595,33 @@ export const BuilderCardPreview = forwardRef<BuilderCardPreviewRef, BuilderCardP
               className="absolute left-[66px] top-[215px] w-[52px] h-[19px] bg-[#D92B5A] border border-[#0B3F20] rounded-[4px] flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.15)] z-15 pointer-events-none"
               style={{ transform: "rotate(-6deg)" }}
             >
-              <span className="text-[7px] text-white font-heading font-black tracking-widest uppercase truncate px-1">
+              <span className="text-[7px] text-white font-heading font-black tracking-widest uppercase truncate px-1 leading-none">
                 {activeRole}
               </span>
             </div>
 
             {/* 1. Dynamic Name inside yellow name box */}
-            <div className="absolute left-[46px] top-[280px] w-[160px] h-[21px] flex items-center justify-center font-heading font-black text-[11px] text-[#0B3F20] tracking-wide uppercase truncate z-15 pointer-events-none">
+            <div className="absolute left-[46px] top-[280px] w-[160px] h-[21px] flex items-center justify-center font-heading font-black text-[11px] text-[#0B3F20] tracking-wide uppercase truncate z-15 pointer-events-none leading-none whitespace-nowrap">
               {values.name || "YOUR NAME"}
             </div>
 
             {/* 2. Dynamic Username inside green pill */}
-            <div className="absolute left-[211px] top-[283px] w-[43px] h-[14px] flex items-center justify-center font-sans font-bold text-[7px] text-[#FCD205] truncate z-15 pointer-events-none">
+            <div className="absolute left-[211px] top-[283px] w-[43px] h-[14px] flex items-center justify-center font-sans font-bold text-[7px] text-[#FCD205] truncate z-15 pointer-events-none leading-none whitespace-nowrap">
               @{values.github || "username"}
             </div>
 
             {/* 3. Dynamic Stack column */}
-            <div className="absolute left-[41px] top-[316px] w-[82px] font-sans font-semibold text-[8px] text-[#0B3F20] leading-tight text-left truncate z-15 pointer-events-none">
+            <div className="absolute left-[41px] top-[315px] w-[82px] h-[16px] font-sans font-semibold text-[8px] text-[#0B3F20] leading-none text-left truncate z-15 pointer-events-none whitespace-nowrap overflow-hidden">
               {values.techStack || "Your Stack"}
             </div>
 
             {/* 4. Dynamic Title (Designation) column */}
-            <div className="absolute left-[158px] top-[316px] w-[94px] font-sans font-semibold text-[8px] text-[#0B3F20] leading-tight text-left truncate z-15 pointer-events-none">
+            <div className="absolute left-[158px] top-[315px] w-[94px] h-[16px] font-sans font-semibold text-[8px] text-[#0B3F20] leading-none text-left truncate z-15 pointer-events-none whitespace-nowrap overflow-hidden">
               {values.title || "Your Title"}
             </div>
 
             {/* 5. Dynamic Barcode Stripes */}
-            {/* 5. Dynamic Barcode Stripes */}
-            <div className="absolute left-[77px] top-[346px] w-[147px] h-[29px] flex items-center justify-between opacity-85 pointer-events-none z-15">
+            <div className="absolute left-[77px] top-[344px] w-[147px] h-[26px] flex items-center justify-between opacity-85 pointer-events-none z-15">
               {Array.from({ length: 48 }).map((_, i) => {
                 const hash = (builderId || "1947").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
                 const width = (i + hash) % 5 === 0 ? "3px" : (i + hash) % 3 === 0 ? "1.2px" : "2.2px"
@@ -633,7 +636,7 @@ export const BuilderCardPreview = forwardRef<BuilderCardPreviewRef, BuilderCardP
             </div>
 
             {/* 6. Dynamic Builder ID text */}
-            <div className="absolute left-[77px] top-[378px] w-[147px] text-center font-mono font-bold text-[7px] text-[#0B3F20] opacity-60 tracking-wider uppercase z-15 pointer-events-none">
+            <div className="absolute left-[77px] top-[374px] w-[147px] h-[12px] text-center font-mono font-bold text-[7px] text-[#0B3F20] opacity-70 tracking-wider uppercase z-15 pointer-events-none leading-none whitespace-nowrap overflow-hidden">
               {builderId || "HHGOA26-BUILDER-1947"}
             </div>
 

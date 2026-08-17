@@ -16,12 +16,25 @@
   --radius-card: 20px;
 }
 
+/* Hacker House Goa Color Palette Variables */
+:root {
+  --hh-green: #0B4B2E;
+  --palm-green: #1E6F43;
+  --sunset-yellow: #FFC700;
+  --sand-cream: #FFF7E6;
+  --seafoam: #B7DCC6;
+  --goa-pink: #FF5CA8;
+  --deep-green: #052017;
+  --white: #FFFFFF;
+}
+
 @layer base {
   body {
     background-color: #09090b;
     color: #f4f4f5;
     font-family: var(--font-sans);
     overflow-x: hidden;
+    transition: background-color 0.4s ease, color 0.4s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -141,3 +154,187 @@
   scrollbar-width: none;
 }
 
+/* ==========================================================================
+   DYNAMIC GOA GRADIENTS & THEMES
+   ========================================================================== */
+
+.bg-active-gradient {
+  background: var(--active-grad) !important;
+}
+
+.text-active-gradient {
+  background: var(--active-grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.border-active-gradient {
+  border-color: var(--active-primary-color) !important;
+}
+
+/* 1. Palm Sunset Preset */
+html[data-gradient="palm-sunset"] {
+  --active-grad: linear-gradient(135deg, #1E6F43 0%, #FFC700 100%);
+  --active-grad-text: linear-gradient(135deg, #FFC700 0%, #39FF88 100%);
+  --active-primary-color: #FFC700;
+}
+
+/* 2. Ocean Breeze Preset */
+html[data-gradient="ocean-breeze"] {
+  --active-grad: linear-gradient(135deg, #1E6F43 0%, #B7DCC6 50%, #FFF7E6 100%);
+  --active-grad-text: linear-gradient(135deg, #B7DCC6 0%, #00FF87 100%);
+  --active-primary-color: #B7DCC6;
+}
+
+/* 3. Tropical Vibes Preset */
+html[data-gradient="tropical-vibes"] {
+  --active-grad: linear-gradient(135deg, #052017 0%, #FF5CA8 100%);
+  --active-grad-text: linear-gradient(135deg, #FF5CA8 0%, #FFC700 100%);
+  --active-primary-color: #FF5CA8;
+}
+
+/* 4. Goa Night Theme Specification (Strictly Deep Green - Image 2) */
+html[data-gradient="goa-night"],
+html[data-gradient="goa-night"] body,
+html.light-theme[data-gradient="goa-night"],
+html.light-theme[data-gradient="goa-night"] body {
+  --active-grad: linear-gradient(135deg, #052017 0%, #0B4B2E 50%, #1E6F43 100%);
+  --active-grad-text: #FFC700;
+  --active-primary-color: #00FF87;
+  background-color: #052017 !important;
+  color: #ffffff !important;
+}
+
+html[data-gradient="goa-night"] .glass-card,
+html.light-theme[data-gradient="goa-night"] .glass-card {
+  background: rgba(5, 32, 23, 0.85) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(30, 111, 67, 0.35) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6) !important;
+  color: #ffffff !important;
+}
+
+html[data-gradient="goa-night"] .glass-card-hover:hover,
+html.light-theme[data-gradient="goa-night"] .glass-card-hover:hover {
+  border-color: rgba(0, 255, 135, 0.45) !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 255, 135, 0.25) !important;
+  background: rgba(11, 75, 46, 0.5) !important;
+}
+
+html[data-gradient="goa-night"] .glass-panel,
+html.light-theme[data-gradient="goa-night"] .glass-panel,
+html[data-gradient="goa-night"] header,
+html.light-theme[data-gradient="goa-night"] header {
+  background: rgba(5, 32, 23, 0.9) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: rgba(30, 111, 67, 0.35) !important;
+}
+
+html[data-gradient="goa-night"] input,
+html[data-gradient="goa-night"] select,
+html.light-theme[data-gradient="goa-night"] input,
+html.light-theme[data-gradient="goa-night"] select {
+  background-color: rgba(5, 32, 23, 0.8) !important;
+  border-color: rgba(30, 111, 67, 0.4) !important;
+  color: #ffffff !important;
+}
+
+html[data-gradient="goa-night"] input::placeholder,
+html.light-theme[data-gradient="goa-night"] input::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+html[data-gradient="goa-night"] option,
+html.light-theme[data-gradient="goa-night"] option {
+  background-color: #052017 !important;
+  color: #ffffff !important;
+}
+
+html[data-gradient="goa-night"] ::-webkit-scrollbar-track,
+html.light-theme[data-gradient="goa-night"] ::-webkit-scrollbar-track {
+  background: #052017 !important;
+}
+html[data-gradient="goa-night"] ::-webkit-scrollbar-thumb,
+html.light-theme[data-gradient="goa-night"] ::-webkit-scrollbar-thumb {
+  background: #1E6F43 !important;
+}
+
+/* Light Theme Overrides for Other Presets */
+html.light-theme:not([data-gradient="goa-night"]),
+html.light-theme:not([data-gradient="goa-night"]) body {
+  background-color: #FFF7E6 !important;
+  color: #052017 !important;
+}
+
+html.light-theme:not([data-gradient="goa-night"]) ::-webkit-scrollbar-track {
+  background: #FFF7E6;
+}
+html.light-theme:not([data-gradient="goa-night"]) ::-webkit-scrollbar-thumb {
+  background: #B7DCC6;
+}
+html.light-theme:not([data-gradient="goa-night"]) ::-webkit-scrollbar-thumb:hover {
+  background: #1E6F43;
+}
+
+/* Cards & Panels in Light Theme (Non-Goa Night) */
+html.light-theme:not([data-gradient="goa-night"]) .glass-panel {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(11, 75, 46, 0.15) !important;
+  box-shadow: 0 10px 30px -10px rgba(5, 32, 23, 0.08) !important;
+}
+
+html.light-theme:not([data-gradient="goa-night"]) .glass-card {
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(11, 75, 46, 0.14) !important;
+  box-shadow: 0 8px 25px -8px rgba(5, 32, 23, 0.07) !important;
+  color: #052017 !important;
+}
+
+html.light-theme:not([data-gradient="goa-night"]) .glass-card-hover:hover {
+  border-color: rgba(30, 111, 67, 0.4) !important;
+  box-shadow: 0 20px 40px -12px rgba(30, 111, 67, 0.18) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+}
+
+html.light-theme:not([data-gradient="goa-night"]) .grid-bg {
+  background-image: 
+    linear-gradient(to right, rgba(11, 75, 46, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(11, 75, 46, 0.07) 1px, transparent 1px) !important;
+}
+
+html.light-theme:not([data-gradient="goa-night"]) .radial-glow {
+  background: radial-gradient(circle 600px at 50% 200px, rgba(183, 220, 198, 0.5), transparent 80%) !important;
+}
+
+html.light-theme:not([data-gradient="goa-night"]) .radial-glow-green-top {
+  background: radial-gradient(circle at 50% -100px, rgba(30, 111, 67, 0.25), transparent 70%) !important;
+}
+
+/* Light Theme Input & Select Overrides (Non-Goa Night) */
+html.light-theme:not([data-gradient="goa-night"]) input,
+html.light-theme:not([data-gradient="goa-night"]) select {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(11, 75, 46, 0.22) !important;
+  color: #052017 !important;
+}
+
+html.light-theme:not([data-gradient="goa-night"]) input::placeholder {
+  color: rgba(5, 32, 23, 0.45) !important;
+}
+
+html.light-theme:not([data-gradient="goa-night"]) input:focus,
+html.light-theme:not([data-gradient="goa-night"]) select:focus {
+  border-color: #1E6F43 !important;
+  box-shadow: 0 0 0 3px rgba(30, 111, 67, 0.2) !important;
+}
+
+html.light-theme:not([data-gradient="goa-night"]) option {
+  background-color: #FFF7E6 !important;
+  color: #052017 !important;
+}
